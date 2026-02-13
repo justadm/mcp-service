@@ -17,8 +17,5 @@ sources:
     type: mysql
     connectionStringEnv: MYSQL_CONNECTION_STRING
     # В MySQL database == schema.
-    database: <DB_NAME>
-    allowTables:
-      - users
-      - orders
+    database: test_ameton
     maxLimit: 500

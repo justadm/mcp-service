@@ -50,12 +50,52 @@ ssh -N -R 127.0.0.1:13306:127.0.0.1:3306 msk
 ```
 
 Тогда на VM MySQL будет доступен по `127.0.0.1:13306`.
-Для контейнера используем `host.docker.internal:13306` (см. `deploy/docker-compose.nginx.my.yml`).
+Важно: контейнеры Docker на VM не могут подключаться к `127.0.0.1:13306` напрямую (это loopback внутри контейнера).
+Нужно дать контейнеру точку входа на хост VM.
+
+### Рекомендуемый вариант (надежный для Linux VM): proxy на `172.17.0.1:13306`
+
+1) Поднимай прокси на VM, который слушает `172.17.0.1:13306` и пробрасывает на `127.0.0.1:13306`.
+
+В репо есть шаблоны:
+- `deploy/systemd/justgpt-mysql-tunnel-proxy.service`
+- `deploy/systemd/mysql_tunnel_proxy.py`
+
+Пример установки на VM:
+```bash
+sudo -n mkdir -p /opt/justgpt-mysql-tunnel-proxy
+sudo -n cp /opt/mcp-service/deploy/systemd/mysql_tunnel_proxy.py /opt/justgpt-mysql-tunnel-proxy/mysql_tunnel_proxy.py
+sudo -n cp /opt/mcp-service/deploy/systemd/justgpt-mysql-tunnel-proxy.service /etc/systemd/system/justgpt-mysql-tunnel-proxy.service
+sudo -n systemctl daemon-reload
+sudo -n systemctl enable --now justgpt-mysql-tunnel-proxy
+sudo -n systemctl status justgpt-mysql-tunnel-proxy --no-pager
+```
+
+2) Если включен UFW, разреши вход к порту с docker-сетей (пример):
+```bash
+sudo -n ufw allow from 172.18.0.0/16 to 172.17.0.1 port 13306 proto tcp
+sudo -n ufw status numbered | rg 13306 || true
+```
+
+3) В `MYSQL_CONNECTION_STRING` для контейнера указывай `host.docker.internal:13306`.
+На Linux с `extra_hosts: host.docker.internal:host-gateway` это указывает на gateway docker bridge (обычно `172.17.0.1`).
+
+### Рекомендация по пользователю MySQL
+
+Не используй `root` для MCP.
+Создай отдельного read-only пользователя на ноутбуке и выдай права только на нужную БД (пример для `test_ameton`):
+```sql
+CREATE USER 'mcp_ro'@'localhost' IDENTIFIED BY '<PASSWORD>';
+CREATE USER 'mcp_ro'@'127.0.0.1' IDENTIFIED BY '<PASSWORD>';
+GRANT SELECT, SHOW VIEW ON test_ameton.* TO 'mcp_ro'@'localhost';
+GRANT SELECT, SHOW VIEW ON test_ameton.* TO 'mcp_ro'@'127.0.0.1';
+FLUSH PRIVILEGES;
+```
 
 Пример `MYSQL_CONNECTION_STRING` для VM:
 - пароль обязательно urlencoded: `%` => `%25`
 ```bash
-MYSQL_CONNECTION_STRING='mysql://root:Zse4%25rdxCft6@host.docker.internal:13306/<DB_NAME>'
+MYSQL_CONNECTION_STRING='mysql://mcp_ro:<PASSWORD_URLENCODED>@host.docker.internal:13306/test_ameton'
 ```
 
 Поднять проект `my`:

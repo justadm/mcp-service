@@ -1,0 +1,19 @@
+[Unit]
+Description=JustGPT MySQL tunnel proxy (Docker -> localhost reverse tunnel)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Environment=LISTEN_HOST=172.17.0.1
+Environment=LISTEN_PORT=13306
+Environment=UPSTREAM_HOST=127.0.0.1
+Environment=UPSTREAM_PORT=13306
+ExecStart=/usr/bin/env python3 /opt/justgpt-mysql-tunnel-proxy/mysql_tunnel_proxy.py
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
+

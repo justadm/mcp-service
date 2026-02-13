@@ -13,8 +13,8 @@ sources:
   - id: mysql_local
     type: mysql
     # Важно: пароль в URL должен быть urlencoded. Для '%' используй '%25'.
-    # Пример: пароль "Zse4%rdxCft6" => "Zse4%25rdxCft6"
-    connectionString: mysql://root:Zse4%25rdxCft6@127.0.0.1:3306/<DB_NAME>
+    # Пример: пароль "pa%ss" => "pa%25ss"
+    connectionString: mysql://<USER>:<PASSWORD_URLENCODED>@127.0.0.1:3306/<DB_NAME>
     database: <DB_NAME>
     # Лучше явный allowlist таблиц.
     allowTables:
