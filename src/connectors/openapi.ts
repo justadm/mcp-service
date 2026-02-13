@@ -32,8 +32,16 @@ function applyAuthHeaders(
   headers: Record<string, string>,
 ) {
   const auth = cfg.auth ?? { type: "none" as const };
-  if (auth.type === "bearer") headers["authorization"] = `Bearer ${auth.token}`;
-  if (auth.type === "header") headers[auth.name] = auth.value;
+  if (auth.type === "bearer") {
+    const token = auth.token;
+    if (!token) throw new Error(`[openapi:${cfg.id}] bearer auth: token не задан`);
+    headers["authorization"] = `Bearer ${token}`;
+  }
+  if (auth.type === "header") {
+    const value = auth.value;
+    if (!value) throw new Error(`[openapi:${cfg.id}] header auth: value не задан`);
+    headers[auth.name] = value;
+  }
 }
 
 function joinUrl(baseUrl: string, p: string) {

@@ -80,6 +80,11 @@ export function createPostgresConnector(cfg: PostgresSourceConfig): Connector {
     id: cfg.id,
     title: cfg.title,
     async register(ctx: RegisterContext) {
+      if (!cfg.connectionString) {
+        throw new Error(
+          `[postgres:${cfg.id}] connectionString не задан (ожидается после resolveSecrets).`,
+        );
+      }
       const pool = new Pool({ connectionString: cfg.connectionString });
       const baseName = `pg_${cfg.id}`.replace(/[^\w]+/g, "_");
       const defaultSchema = cfg.schema ?? "public";

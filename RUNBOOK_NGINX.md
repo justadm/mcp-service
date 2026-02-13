@@ -71,6 +71,15 @@ sudo -n nginx -t
 sudo -n systemctl reload nginx
 ```
 
+## 5.1) Редирект HTTP -> HTTPS
+
+В `deploy/nginx/justgpt.ru.http.conf` настроен 301 редирект на HTTPS (кроме `/.well-known/acme-challenge/`).
+После изменения шаблона не забудь обновить файл на VM:
+```bash
+sudo -n cp /opt/mcp-service/deploy/nginx/justgpt.ru.http.conf /etc/nginx/sites-available/justgpt.ru.http
+sudo -n nginx -t && sudo -n systemctl reload nginx
+```
+
 ### Basic Auth для MCP (MVP)
 
 Создай `htpasswd` файлы:

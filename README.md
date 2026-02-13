@@ -63,6 +63,16 @@ npm run probe
 
 Смотри `examples/mcp-service.example.yml`.
 
+## Секреты (MVP)
+
+Для `openapi` и `postgres` поддержаны секреты через `*_File` или `*_Env`:
+- `openapi.auth.type: bearer`:
+  - `token` или `tokenFile` или `tokenEnv`
+- `openapi.auth.type: header`:
+  - `value` или `valueFile` или `valueEnv`
+- `postgres`:
+  - `connectionString` или `connectionStringFile` или `connectionStringEnv`
+
 ## Ограничения текущей реализации
 
 - Для OpenAPI входная схема tools пока унифицированная (`params/query/headers/body`) и не генерируется из OpenAPI schema.

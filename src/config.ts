@@ -12,11 +12,18 @@ export const OpenApiSourceConfig = SourceBase.extend({
   auth: z
     .union([
       z.object({ type: z.literal("none") }),
-      z.object({ type: z.literal("bearer"), token: z.string().min(1) }),
+      z.object({
+        type: z.literal("bearer"),
+        token: z.string().min(1).optional(),
+        tokenFile: z.string().min(1).optional(),
+        tokenEnv: z.string().min(1).optional(),
+      }),
       z.object({
         type: z.literal("header"),
         name: z.string().min(1),
-        value: z.string().min(1),
+        value: z.string().min(1).optional(),
+        valueFile: z.string().min(1).optional(),
+        valueEnv: z.string().min(1).optional(),
       }),
     ])
     .optional(),
@@ -38,7 +45,9 @@ export const JsonSourceConfig = SourceBase.extend({
 
 export const PostgresSourceConfig = SourceBase.extend({
   type: z.literal("postgres"),
-  connectionString: z.string().min(1),
+  connectionString: z.string().min(1).optional(),
+  connectionStringFile: z.string().min(1).optional(),
+  connectionStringEnv: z.string().min(1).optional(),
   schema: z.string().min(1).optional().default("public"),
   // Если задано, ограничиваем доступ только этими таблицами.
   allowTables: z.array(z.string().min(1)).optional(),

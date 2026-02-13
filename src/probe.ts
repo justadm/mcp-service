@@ -70,6 +70,18 @@ async function probeSource(src: SourceConfig) {
   }
 
   if (src.type === "postgres") {
+    if (!src.connectionString) {
+      return {
+        id: src.id,
+        type: src.type,
+        schema: src.schema ?? "public",
+        allowTables: src.allowTables ?? null,
+        maxLimit: src.maxLimit ?? 1000,
+        ok: false,
+        error:
+          `[postgres:${src.id}] connectionString не задан (ожидается после resolveSecrets).`,
+      };
+    }
     const pool = new Pool({ connectionString: src.connectionString });
     try {
       const schema = src.schema ?? "public";

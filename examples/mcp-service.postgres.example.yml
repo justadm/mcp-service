@@ -16,10 +16,11 @@ sources:
 
   - id: demo_pg
     type: postgres
-    # В managed-режиме connectionString обычно хранится как секрет.
+    # В managed-режиме connectionString лучше хранить как секрет:
+    # connectionStringFile: /run/secrets/pg_conn
+    # connectionStringEnv: PG_CONN
     connectionString: postgresql://mcp:mcp@postgres:5432/mcp
     schema: public
     # allowTables:
     #   - public.users
     maxLimit: 1000
-
