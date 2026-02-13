@@ -37,6 +37,31 @@ docker compose -f deploy/docker-compose.nginx.yml up -d --build
 - `127.0.0.1:19002` (p2)
 - `127.0.0.1:19003` (pg, если поднят `deploy/docker-compose.nginx.pg.yml`)
 - `127.0.0.1:19004` (tw)
+- `127.0.0.1:19005` (my, если поднят `deploy/docker-compose.nginx.my.yml`)
+
+## 2.1) MySQL на ноутбуке (MVP через SSH reverse tunnel)
+
+Если MySQL находится на ноутбуке, VM `msk` не сможет подключиться к нему как к `localhost`.
+Для MVP самый быстрый вариант: сделать SSH reverse tunnel с ноутбука на VM.
+
+На ноутбуке (держать сессию открытой):
+```bash
+ssh -N -R 127.0.0.1:13306:127.0.0.1:3306 msk
+```
+
+Тогда на VM MySQL будет доступен по `127.0.0.1:13306`.
+Для контейнера используем `host.docker.internal:13306` (см. `deploy/docker-compose.nginx.my.yml`).
+
+Пример `MYSQL_CONNECTION_STRING` для VM:
+- пароль обязательно urlencoded: `%` => `%25`
+```bash
+MYSQL_CONNECTION_STRING='mysql://root:Zse4%25rdxCft6@host.docker.internal:13306/<DB_NAME>'
+```
+
+Поднять проект `my`:
+```bash
+docker compose -f deploy/docker-compose.nginx.my.yml up -d --build
+```
 
 ## 3) Подготовить webroot для Let’s Encrypt (HTTP-01)
 

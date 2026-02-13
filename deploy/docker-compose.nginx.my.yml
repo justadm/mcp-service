@@ -1,0 +1,22 @@
+services:
+  # Проект my: mcp.justgpt.ru/p/my/mcp
+  #
+  # Внимание: MySQL на ноутбуке недоступен на VM как localhost.
+  # Для MVP можно прокинуть MySQL через ssh reverse tunnel и подключаться к host.docker.internal:13306.
+  mcp_my:
+    image: mcp-service:local
+    build:
+      context: ..
+    environment:
+      MCP_SERVICE_CONFIG: /app/project.yml
+      MCP_BEARER_TOKEN: ${MCP_MY_BEARER_TOKEN}
+      MYSQL_CONNECTION_STRING: ${MYSQL_CONNECTION_STRING}
+    extra_hosts:
+      # Linux (docker compose): дает контейнеру доступ к сервисам на хосте VM.
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./projects/my.yml:/app/project.yml:ro
+      - ../examples:/app/examples:ro
+    ports:
+      - "127.0.0.1:19005:8080"
+    restart: unless-stopped

@@ -1,0 +1,23 @@
+server:
+  name: mcp-service
+  version: 0.1.0
+
+transport:
+  type: http
+  host: 127.0.0.1
+  port: 18081
+  path: /mcp
+  stateful: true
+
+sources:
+  - id: mysql_local
+    type: mysql
+    # Важно: пароль в URL должен быть urlencoded. Для '%' используй '%25'.
+    # Пример: пароль "Zse4%rdxCft6" => "Zse4%25rdxCft6"
+    connectionString: mysql://root:Zse4%25rdxCft6@127.0.0.1:3306/<DB_NAME>
+    database: <DB_NAME>
+    # Лучше явный allowlist таблиц.
+    allowTables:
+      - users
+      - orders
+    maxLimit: 500
