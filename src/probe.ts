@@ -4,6 +4,7 @@ import YAML from "yaml";
 import pg from "pg";
 import mysql from "mysql2/promise";
 import type { AppConfig, SourceConfig } from "./config.js";
+import { mysqlPickRowValue } from "./connectors/mysqlRow.js";
 
 const { Pool } = pg as unknown as typeof import("pg");
 
@@ -183,7 +184,10 @@ async function probeSource(src: SourceConfig) {
           [database],
         );
 
-        const tables = (rows as any[]).map((x) => String(x.table_name));
+        const tables = (rows as any[]).map((x) => {
+          const v = mysqlPickRowValue(x, ["table_name", "TABLE_NAME"], 0);
+          return v === undefined || v === null ? null : String(v);
+        }).filter((t): t is string => typeof t === "string" && t.length > 0);
         const filtered = src.allowTables
           ? tables.filter(
               (t) =>

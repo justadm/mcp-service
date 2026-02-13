@@ -2,6 +2,7 @@ import { z } from "zod";
 import mysql from "mysql2/promise";
 import type { Connector, RegisterContext } from "./types.js";
 import type { MysqlSourceConfig } from "../config.js";
+import { mysqlPickRowValue, mysqlPickRowValueRequired } from "./mysqlRow.js";
 
 function isIdentifier(s: string) {
   // Упрощенная проверка идентификаторов SQL (MySQL). Без кавычек.
@@ -92,7 +93,10 @@ export function createMysqlConnector(cfg: MysqlSourceConfig): Connector {
           `,
           [db],
         );
-        const tables = (rows as any[]).map((x) => String(x.table_name));
+        const tables = (rows as any[]).map((x) => {
+          const v = mysqlPickRowValue(x, ["table_name", "TABLE_NAME"], 0);
+          return v === undefined || v === null ? null : String(v);
+        }).filter((t): t is string => typeof t === "string" && t.length > 0);
         return allowTablesSet
           ? tables.filter((t) => allowTablesSet.has(`${db}.${t}`) || allowTablesSet.has(t))
           : tables;
@@ -114,10 +118,19 @@ export function createMysqlConnector(cfg: MysqlSourceConfig): Connector {
           [db, table],
         );
         return (rows as any[]).map((x) => ({
-          name: String(x.column_name),
-          type: String(x.data_type),
-          nullable: String(x.is_nullable).toLowerCase() === "yes",
-          default: x.column_default === null ? null : String(x.column_default),
+          name: String(
+            mysqlPickRowValueRequired(x, ["column_name", "COLUMN_NAME"], 0, "column_name"),
+          ),
+          type: String(
+            mysqlPickRowValueRequired(x, ["data_type", "DATA_TYPE"], 1, "data_type"),
+          ),
+          nullable:
+            String(mysqlPickRowValue(x, ["is_nullable", "IS_NULLABLE"], 2)).toLowerCase() ===
+            "yes",
+          default: (() => {
+            const d = mysqlPickRowValue(x, ["column_default", "COLUMN_DEFAULT"], 3);
+            return d === null || d === undefined ? null : String(d);
+          })(),
         }));
       }
 
@@ -263,4 +276,3 @@ export function createMysqlConnector(cfg: MysqlSourceConfig): Connector {
     },
   };
 }
-
