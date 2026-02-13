@@ -63,3 +63,34 @@ services:
       - traefik.http.routers.mcp_redirect.middlewares=mcp_https_redirect
       - traefik.http.middlewares.mcp_https_redirect.redirectscheme.scheme=https
     restart: unless-stopped
+
+  # Заглушки для app/api (пока нет реальных сервисов).
+  stubs:
+    image: traefik/whoami:v1.11
+    labels:
+      - traefik.enable=true
+
+      # app.justgpt.ru
+      - traefik.http.routers.app_stub.rule=Host(`${DOMAIN_APP}`)
+      - traefik.http.routers.app_stub.entrypoints=websecure
+      - traefik.http.routers.app_stub.tls=true
+      - traefik.http.routers.app_stub.tls.certresolver=le
+      - traefik.http.services.app_stub.loadbalancer.server.port=80
+
+      - traefik.http.routers.app_redirect.rule=Host(`${DOMAIN_APP}`)
+      - traefik.http.routers.app_redirect.entrypoints=web
+      - traefik.http.routers.app_redirect.middlewares=app_https_redirect
+      - traefik.http.middlewares.app_https_redirect.redirectscheme.scheme=https
+
+      # api.justgpt.ru
+      - traefik.http.routers.api_stub.rule=Host(`${DOMAIN_API}`)
+      - traefik.http.routers.api_stub.entrypoints=websecure
+      - traefik.http.routers.api_stub.tls=true
+      - traefik.http.routers.api_stub.tls.certresolver=le
+      - traefik.http.services.api_stub.loadbalancer.server.port=80
+
+      - traefik.http.routers.api_redirect.rule=Host(`${DOMAIN_API}`)
+      - traefik.http.routers.api_redirect.entrypoints=web
+      - traefik.http.routers.api_redirect.middlewares=api_https_redirect
+      - traefik.http.middlewares.api_https_redirect.redirectscheme.scheme=https
+    restart: unless-stopped

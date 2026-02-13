@@ -46,6 +46,9 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 Проверка:
 - Traefik должен получить сертификат Let’s Encrypt на `mcp.justgpt.ru`.
+- Заглушки должны отвечать `200` по:
+  - `https://app.justgpt.ru/`
+  - `https://api.justgpt.ru/`
 - Должны отвечать endpoints проектов:
   - `https://mcp.justgpt.ru/p/p1/mcp`
   - `https://mcp.justgpt.ru/p/p2/mcp`
