@@ -1,0 +1,23 @@
+server:
+  name: mcp-service
+  version: 0.1.0
+
+transport:
+  type: stdio
+
+sources:
+  - id: petstore
+    type: openapi
+    specFile: examples/petstore.openapi.yml
+    baseUrl: https://petstore3.swagger.io/api/v3
+    auth:
+      type: none
+
+  - id: demo_csv
+    type: csv
+    file: examples/demo.csv
+    hasHeader: true
+
+  - id: demo_json
+    type: json
+    file: examples/demo.json

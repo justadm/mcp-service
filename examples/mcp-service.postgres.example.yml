@@ -1,0 +1,25 @@
+server:
+  name: mcp-service
+  version: 0.1.0
+
+transport:
+  type: http
+  host: 0.0.0.0
+  port: 8080
+  path: /mcp
+  stateful: true
+
+sources:
+  - id: demo_json
+    type: json
+    file: examples/demo.json
+
+  - id: demo_pg
+    type: postgres
+    # В managed-режиме connectionString обычно хранится как секрет.
+    connectionString: postgresql://mcp:mcp@postgres:5432/mcp
+    schema: public
+    # allowTables:
+    #   - public.users
+    maxLimit: 1000
+

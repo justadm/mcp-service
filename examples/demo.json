@@ -1,0 +1,8 @@
+{
+  "users": [
+    { "id": 1, "name": "Alice", "city": "Berlin" },
+    { "id": 2, "name": "Bob", "city": "Paris" }
+  ],
+  "meta": { "source": "demo" }
+}
+
