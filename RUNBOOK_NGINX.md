@@ -7,6 +7,14 @@
 - `api.justgpt.ru` -> 200 заглушка
 - `mcp.justgpt.ru/p/<projectId>/mcp` -> reverse proxy на локальные docker-контейнеры `mcp-service`
 
+## Demo Postgres (тестовые данные)
+
+В репозитории есть demo Postgres с init SQL:
+- `deploy/postgres/init/001_demo.sql`
+
+И demo MCP проект:
+- `deploy/projects/pg.yml` (endpoint: `/p/pg/mcp`)
+
 ## 1) DNS
 
 A/AAAA на IP этой VM:
@@ -27,6 +35,7 @@ docker compose -f deploy/docker-compose.nginx.yml up -d --build
 Контейнеры будут слушать локально:
 - `127.0.0.1:19001` (p1)
 - `127.0.0.1:19002` (p2)
+- `127.0.0.1:19003` (pg, если поднят `deploy/docker-compose.nginx.pg.yml`)
 
 ## 3) Подготовить webroot для Let’s Encrypt (HTTP-01)
 
@@ -97,8 +106,9 @@ sudo -n nginx -t && sudo -n systemctl reload nginx
 ```bash
 sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-p1 p1
 sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-p2 p2
+sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-pg pg
 
-sudo -n chmod 600 /etc/nginx/.htpasswd-justgpt-mcp-p1 /etc/nginx/.htpasswd-justgpt-mcp-p2
+sudo -n chmod 600 /etc/nginx/.htpasswd-justgpt-mcp-p1 /etc/nginx/.htpasswd-justgpt-mcp-p2 /etc/nginx/.htpasswd-justgpt-mcp-pg
 sudo -n nginx -t && sudo -n systemctl reload nginx
 ```
 
@@ -139,6 +149,19 @@ curl -i -N --max-time 2 \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 ```
+
+### Проверка demo Postgres проекта (pg)
+
+```bash
+curl -i -N --max-time 2 \
+  -u pg:<PG_PASSWORD> \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -X POST 'https://mcp.justgpt.ru/p/pg/mcp' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
+```
+
+Дальше можно вызвать `tools/list` и `call-tool` (например, `pg_pg_demo_list_tables` / `pg_pg_demo_select`), но удобнее это делать из MCP-клиента.
 
 ## 6) Добавить новый проект
 

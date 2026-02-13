@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mcp
+      POSTGRES_PASSWORD: mcp
+      POSTGRES_DB: mcp
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mcp -d mcp"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    restart: unless-stopped
+
+  # Проект pg: mcp.justgpt.ru/p/pg/mcp
+  mcp_pg:
+    image: mcp-service:local
+    build:
+      context: ..
+    environment:
+      MCP_SERVICE_CONFIG: /app/project.yml
+    volumes:
+      - ./projects/pg.yml:/app/project.yml:ro
+      - ../examples:/app/examples:ro
+    ports:
+      - "127.0.0.1:19003:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+
