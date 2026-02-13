@@ -18,4 +18,7 @@ sources:
     connectionStringEnv: MYSQL_CONNECTION_STRING
     # В MySQL database == schema.
     database: test_ameton
+    # TODO: задать allowTables (allowlist) перед любым публичным доступом.
+    # allowTables:
+    #   - b_user
     maxLimit: 500

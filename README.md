@@ -99,3 +99,21 @@ transport:
 
 Если перед `mcp-service` стоит nginx Basic Auth, то использовать `Authorization: Bearer ...` одновременно с Basic нельзя (один заголовок).
 В этом случае передавай токен в `X-MCP-Bearer-Token: <TOKEN>` (или `X-Project-Token: <TOKEN>`).
+
+## Smoke-тест (HTTP MCP)
+
+В репозитории есть скрипт `scripts/smoke_http_mcp.sh`:
+- делает `initialize`
+- делает `tools/list`
+- опционально делает `tools/call`
+
+Пример для MySQL-проекта `my` (nginx Basic + per-project token):
+```bash
+MCP_BASE_URL='https://mcp.justgpt.ru' \
+MCP_BASIC_USER='mcp' \
+MCP_BASIC_PASS='<ADMIN_PASSWORD>' \
+MCP_PROJECT_PATH='/p/my/mcp' \
+MCP_PROJECT_TOKEN='<MCP_MY_BEARER_TOKEN>' \
+MCP_TOOL_NAME='mysql_mysql_main_list_tables' \
+./scripts/smoke_http_mcp.sh
+```
