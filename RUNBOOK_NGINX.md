@@ -77,6 +77,32 @@ curl -fsS https://mcp.justgpt.ru/health
 curl -fsS https://mcp.justgpt.ru/ready
 ```
 
+## Минимальная ручная проверка MCP через curl
+
+Примечания:
+- ответ идет через SSE, поэтому `curl` будет “висеть”; добавляй `--max-time 2`.
+- после `initialize` сервер вернет заголовок `mcp-session-id`, его надо передавать дальше.
+
+1) `initialize`:
+```bash
+curl -i -N --max-time 2 \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
+```
+
+2) `tools/list`:
+```bash
+curl -i -N --max-time 2 \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -H 'mcp-protocol-version: 2025-03-26' \
+  -H 'mcp-session-id: <SESSION_ID>' \
+  -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+```
+
 ## 6) Добавить новый проект
 
 1. Создай `deploy/projects/<projectId>.yml` с `transport.path: /p/<projectId>/mcp`.

@@ -70,6 +70,7 @@ curl -fsS https://mcp.justgpt.ru/ready
 ```bash
 curl -i -N --max-time 2 \
   -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
 ```
@@ -78,6 +79,7 @@ curl -i -N --max-time 2 \
 ```bash
 curl -i -N --max-time 2 \
   -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
   -H 'mcp-protocol-version: 2025-03-26' \
   -H 'mcp-session-id: <SESSION_ID>' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
