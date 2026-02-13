@@ -206,9 +206,15 @@ export function patchNginxHttpsConf(filePath: string, projectPath: string, hostP
   const locLine = `    location = ${projectPath} {`;
   if (raw.includes(locLine)) return false;
 
-  const insertionPoint = raw.indexOf("\n    location / {\n");
+  // Вставляем в server block для mcp.justgpt.ru (а не в justgpt.ru/app/api).
+  const mcpServerNeedle = "\n    server_name mcp.justgpt.ru;\n";
+  const mcpServerPos = raw.indexOf(mcpServerNeedle);
+  if (mcpServerPos < 0) throw new Error("Не найден server_name mcp.justgpt.ru для вставки route");
+
+  const insertionNeedle = "\n    location / {\n        return 404;\n    }\n";
+  const insertionPoint = raw.indexOf(insertionNeedle, mcpServerPos);
   if (insertionPoint < 0) {
-    throw new Error("Не найден блок 'location /' для вставки нового project route");
+    throw new Error("Не найден блок 'location / { return 404; }' внутри server mcp.justgpt.ru");
   }
 
   const block =
