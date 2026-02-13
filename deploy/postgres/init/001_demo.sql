@@ -28,10 +28,34 @@ alter table public.orders
   add column if not exists currency text not null default 'EUR',
   add column if not exists is_gift boolean not null default false,
   add column if not exists meta jsonb,
+  add column if not exists seed_key text,
   add column if not exists updated_at timestamptz;
 
 create index if not exists idx_orders_user_created_at on public.orders(user_id, created_at desc);
 create index if not exists idx_users_city on public.users(city);
+
+-- Делаем сиды идемпотентными: для заранее известных "seed" заказов проставляем ключ и удаляем дубли.
+update public.orders o
+set seed_key = u.email || '|' || o.status || '|' || o.amount_cents
+from public.users u
+where u.id = o.user_id
+  and o.seed_key is null
+  and (u.email, o.status, o.amount_cents) in (
+    ('alice@example.com', 'paid', 1299),
+    ('alice@example.com', 'paid', 2599),
+    ('bob@example.com', 'pending', 499),
+    ('charlie@example.com', 'failed', 999),
+    ('dora@example.com', 'paid', 0),
+    ('eve@example.com', 'refunded', 1999)
+  );
+
+delete from public.orders a
+using public.orders b
+where a.seed_key is not null
+  and b.seed_key = a.seed_key
+  and a.id > b.id;
+
+create unique index if not exists idx_orders_seed_key on public.orders(seed_key) where seed_key is not null;
 
 insert into public.users (email, name, city)
 values
@@ -42,8 +66,12 @@ values
   ('eve@example.com', 'Eve', 'London')
 on conflict (email) do nothing;
 
-insert into public.orders (user_id, status, amount_cents)
-select u.id, x.status, x.amount_cents
+insert into public.orders (user_id, status, amount_cents, seed_key)
+select
+  u.id,
+  x.status,
+  x.amount_cents,
+  x.email || '|' || x.status || '|' || x.amount_cents
 from (
   values
     ('alice@example.com', 'paid', 1299),
@@ -53,7 +81,8 @@ from (
     ('dora@example.com', 'paid', 0),
     ('eve@example.com', 'refunded', 1999)
 ) as x(email, status, amount_cents)
-join public.users u on u.email = x.email;
+join public.users u on u.email = x.email
+on conflict (seed_key) where seed_key is not null do nothing;
 
 -- Заполняем новые поля (если init уже выполнялся раньше).
 update public.users
