@@ -1,0 +1,29 @@
+services:
+  # Проект p1: mcp.justgpt.ru/p/p1/mcp
+  mcp_p1:
+    image: mcp-service:local
+    build:
+      context: ..
+    environment:
+      MCP_SERVICE_CONFIG: /app/project.yml
+    volumes:
+      - ./projects/p1.yml:/app/project.yml:ro
+      - ../examples:/app/examples:ro
+    ports:
+      - "127.0.0.1:19001:8080"
+    restart: unless-stopped
+
+  # Проект p2: mcp.justgpt.ru/p/p2/mcp
+  mcp_p2:
+    image: mcp-service:local
+    build:
+      context: ..
+    environment:
+      MCP_SERVICE_CONFIG: /app/project.yml
+    volumes:
+      - ./projects/p2.yml:/app/project.yml:ro
+      - ../examples:/app/examples:ro
+    ports:
+      - "127.0.0.1:19002:8080"
+    restart: unless-stopped
+

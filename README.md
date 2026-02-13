@@ -44,7 +44,9 @@ docker compose up --build
 
 ## Деплой (MVP)
 
-Для деплоя на 1 VM с TLS через Traefik смотри `RUNBOOK.md`.
+Для деплоя смотри:
+- `RUNBOOK.md` (Traefik TLS, отдельная VM/edge без занятого `:80/:443`)
+- `RUNBOOK_NGINX.md` (если на VM уже есть nginx и другие домены)
 
 ## Probe (оценка источников для предварительного расчета)
 
