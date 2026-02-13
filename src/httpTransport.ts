@@ -29,6 +29,12 @@ export async function serveHttp(server: McpServer, cfg: AppConfig["transport"]) 
     sessionIdGenerator: stateful ? () => randomUUID() : undefined,
   });
 
+  transport.onerror = (err) => {
+    // Важно для отладки: иначе некоторые ошибки транспорта превращаются в "500 без тела".
+    // Логи пойдут в stdout/stderr контейнера.
+    console.error("[mcp-service] transport error:", err);
+  };
+
   // Подключаем транспорт один раз; дальше handleRequest будет дергать onmessage.
   await server.connect(transport);
 
@@ -73,6 +79,7 @@ export async function serveHttp(server: McpServer, cfg: AppConfig["transport"]) 
       res.setHeader("allow", "GET, POST");
       res.end();
     } catch (e) {
+      console.error("[mcp-service] http handler error:", e);
       res.statusCode = 500;
       res.setHeader("content-type", "application/json; charset=utf-8");
       res.end(JSON.stringify({ error: String(e) }));
