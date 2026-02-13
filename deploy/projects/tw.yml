@@ -17,6 +17,15 @@ sources:
     type: openapi
     specFile: examples/timeweb.openapi.json
     baseUrl: https://api.timeweb.cloud
+    # Для MVP ограничиваем инструменты только чтением и небольшой allowlist,
+    # чтобы случайно не экспонировать destructive операции (delete/patch/post).
+    allowMethods: [get]
+    allowOperationIds:
+      - getAccountStatus
+      - getFinances
+      - getServicePrices
+      - getServers
+      - getServer
     # Чтобы включить авторизацию в Timeweb Cloud API:
     # auth:
     #   type: bearer

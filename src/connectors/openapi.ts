@@ -73,15 +73,32 @@ export function createOpenApiConnector(cfg: OpenApiSourceConfig): Connector {
         );
       }
 
+      const allowMethods = cfg.allowMethods?.map((m) => m.toLowerCase()) as
+        | HttpMethod[]
+        | undefined;
+      const allowMethodsSet = allowMethods ? new Set(allowMethods) : undefined;
+
+      const allowOpSet = cfg.allowOperationIds
+        ? new Set(cfg.allowOperationIds.map((x) => x.trim()).filter(Boolean))
+        : undefined;
+      const denyOpSet = cfg.denyOperationIds
+        ? new Set(cfg.denyOperationIds.map((x) => x.trim()).filter(Boolean))
+        : undefined;
+
       for (const [p, pathItem] of Object.entries<any>(paths)) {
         if (!pathItem || typeof pathItem !== "object") continue;
 
         for (const [method, op] of Object.entries<any>(pathItem)) {
           if (!isHttpMethod(method)) continue;
+          if (allowMethodsSet && !allowMethodsSet.has(method)) continue;
           if (!op || typeof op !== "object") continue;
 
           const operationId =
             (typeof op.operationId === "string" && op.operationId.trim()) || "";
+
+          if (denyOpSet && operationId && denyOpSet.has(operationId)) continue;
+          // Если задан allowlist по operationId, то операции без operationId пропускаем.
+          if (allowOpSet && (!operationId || !allowOpSet.has(operationId))) continue;
 
           // Делаем стабильное имя инструмента даже без operationId.
           const toolName = `openapi_${cfg.id}_${operationId || `${method}_${p}`}`

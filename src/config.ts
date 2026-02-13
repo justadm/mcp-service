@@ -9,6 +9,15 @@ export const OpenApiSourceConfig = SourceBase.extend({
   type: z.literal("openapi"),
   specFile: z.string().min(1),
   baseUrl: z.string().min(1),
+  // Ограничения генерации инструментов (MVP safety).
+  // По умолчанию инструменты создаются для всех операций.
+  allowMethods: z
+    .array(
+      z.enum(["get", "post", "put", "patch", "delete", "head", "options"]),
+    )
+    .optional(),
+  allowOperationIds: z.array(z.string().min(1)).optional(),
+  denyOperationIds: z.array(z.string().min(1)).optional(),
   auth: z
     .union([
       z.object({ type: z.literal("none") }),
