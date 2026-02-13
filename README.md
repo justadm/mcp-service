@@ -60,6 +60,21 @@ npm run probe
 Переменная окружения для выбора конфига:
 - `MCP_SERVICE_CONFIG=/path/to/file.yml`
 
+## Генерация проекта (init)
+
+Сгенерировать новый проект для managed деплоя (создаст `deploy/projects/<id>.yml`, `deploy/docker-compose.nginx.<id>.yml`,
+добавит токен в `deploy/.env.example` и добавит `location = /p/<id>/mcp` в `deploy/nginx/justgpt.ru.https.conf`):
+
+```bash
+npm run build
+node dist/cli.js init --id myproj --type mysql --mysql-database test_ameton
+```
+
+Отключить авто-правки `deploy/.env.example` и nginx-шаблона:
+```bash
+node dist/cli.js init --id myproj --type mysql --no-update-env-example --no-update-nginx
+```
+
 ## Пример конфигурации
 
 Смотри `examples/mcp-service.example.yml`.

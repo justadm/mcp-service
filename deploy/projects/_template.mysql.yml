@@ -1,0 +1,29 @@
+server:
+  name: mcp-service
+  version: 0.1.0
+
+transport:
+  type: http
+  host: 0.0.0.0
+  port: 8080
+  path: /p/<projectId>/mcp
+  stateful: true
+  auth:
+    type: bearer
+    tokenEnv: MCP_BEARER_TOKEN
+
+sources:
+  - id: mysql_main
+    type: mysql
+    # Рекомендуется хранить DSN вне YAML:
+    # connectionStringFile: /run/secrets/mysql_dsn
+    # connectionStringEnv: MYSQL_CONNECTION_STRING
+    connectionStringEnv: MYSQL_CONNECTION_STRING
+    # В MySQL schema == database.
+    database: dbname
+    # Лучше явный allowlist таблиц (безопаснее для продакшна).
+    allowTables:
+      - users
+      - orders
+    maxLimit: 500
+
