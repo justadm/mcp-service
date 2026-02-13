@@ -92,3 +92,6 @@ transport:
 
 В этом режиме каждый HTTP запрос к `transport.path` должен содержать заголовок:
 `Authorization: Bearer <TOKEN>`.
+
+Если перед `mcp-service` стоит nginx Basic Auth, то использовать `Authorization: Bearer ...` одновременно с Basic нельзя (один заголовок).
+В этом случае передавай токен в `X-MCP-Bearer-Token: <TOKEN>` (или `X-Project-Token: <TOKEN>`).

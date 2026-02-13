@@ -65,14 +65,15 @@ curl -fsS https://mcp.justgpt.ru/ready
 Примечания:
 - `Accept` должен включать и `application/json`, и `text/event-stream` (требование спецификации Streamable HTTP).
 - после `initialize` сервер вернет заголовок `mcp-session-id`, его надо передавать дальше.
-- если включен `transport.auth: bearer`, добавь заголовок `Authorization: Bearer <TOKEN>` (токен per-project).
+- если включен `transport.auth: bearer`, добавь `X-MCP-Bearer-Token: <TOKEN>` (токен per-project).
+  Важно: одновременно отправить и Basic Auth, и `Authorization: Bearer ...` нельзя, поэтому для nginx+Basic используется отдельный заголовок.
 
 1) `initialize` (создает сессию):
 ```bash
 curl -i \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
-  -H 'authorization: Bearer <P1_BEARER_TOKEN>' \
+  -H 'x-mcp-bearer-token: <P1_BEARER_TOKEN>' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
 ```
@@ -84,7 +85,7 @@ curl -i \
   -H 'accept: application/json, text/event-stream' \
   -H 'mcp-protocol-version: 2025-03-26' \
   -H 'mcp-session-id: <SESSION_ID>' \
-  -H 'authorization: Bearer <P1_BEARER_TOKEN>' \
+  -H 'x-mcp-bearer-token: <P1_BEARER_TOKEN>' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 ```
