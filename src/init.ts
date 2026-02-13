@@ -231,29 +231,79 @@ export function patchNginxHttpsConf(filePath: string, projectPath: string, hostP
   return true;
 }
 
+function tryReadExistingProjectPath(projectFile: string): string | undefined {
+  if (!fs.existsSync(projectFile)) return undefined;
+  try {
+    const raw = fs.readFileSync(projectFile, "utf8");
+    const cfg: any = YAML.parse(raw);
+    const p = (cfg?.transport?.path ?? "").toString().trim();
+    return p || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function tryReadExistingHostPort(composeFile: string): number | undefined {
+  if (!fs.existsSync(composeFile)) return undefined;
+  try {
+    const raw = fs.readFileSync(composeFile, "utf8");
+    const dc: any = YAML.parse(raw);
+    const services: any = dc?.services;
+    if (!services || typeof services !== "object") return undefined;
+
+    const svcKey = Object.keys(services)[0];
+    const svc = services[svcKey];
+    const ports: any[] = Array.isArray(svc?.ports) ? svc.ports : [];
+    for (const p of ports) {
+      if (typeof p !== "string") continue;
+      // Examples:
+      // - "127.0.0.1:19005:8080"
+      // - "19005:8080"
+      let m = p.match(/127\.0\.0\.1:(\d+):8080/);
+      if (!m) m = p.match(/(^|:)(\d+):8080$/);
+      const n = Number(m?.[1] ?? m?.[2]);
+      if (Number.isFinite(n) && n > 0) return n;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function runInit(opts: InitOptions) {
   const id = validateProjectId(opts.id);
   const deployDir = path.join(process.cwd(), "deploy");
-
-  const projectPath = opts.projectPath?.trim() || `/p/${id}/mcp`;
-  const hostPort =
-    opts.hostPort ?? suggestNextHostPortFromComposeFiles(deployDir);
 
   const outProjectFile = opts.outProjectFile ?? path.join(deployDir, "projects", `${id}.yml`);
   const outComposeFile =
     opts.outComposeFile ?? path.join(deployDir, `docker-compose.nginx.${id}.yml`);
 
-  if (fs.existsSync(outProjectFile)) throw new Error(`Файл уже существует: ${outProjectFile}`);
-  if (fs.existsSync(outComposeFile)) throw new Error(`Файл уже существует: ${outComposeFile}`);
-
   fs.mkdirSync(path.dirname(outProjectFile), { recursive: true });
   fs.mkdirSync(path.dirname(outComposeFile), { recursive: true });
 
-  const projectYaml = renderProjectYaml({ ...opts, id, projectPath });
-  const composeYaml = renderComposeYaml({ ...opts, id, hostPort });
+  const existingProjectPath = tryReadExistingProjectPath(outProjectFile);
+  const existingHostPort = tryReadExistingHostPort(outComposeFile);
 
-  fs.writeFileSync(outProjectFile, projectYaml);
-  fs.writeFileSync(outComposeFile, composeYaml);
+  const projectPath = opts.projectPath?.trim() || existingProjectPath || `/p/${id}/mcp`;
+  const hostPort =
+    opts.hostPort ??
+    existingHostPort ??
+    suggestNextHostPortFromComposeFiles(deployDir);
+
+  let wroteProject = false;
+  let wroteCompose = false;
+
+  if (!fs.existsSync(outProjectFile)) {
+    const projectYaml = renderProjectYaml({ ...opts, id, projectPath });
+    fs.writeFileSync(outProjectFile, projectYaml);
+    wroteProject = true;
+  }
+
+  if (!fs.existsSync(outComposeFile)) {
+    const composeYaml = renderComposeYaml({ ...opts, id, hostPort });
+    fs.writeFileSync(outComposeFile, composeYaml);
+    wroteCompose = true;
+  }
 
   const tokenEnv = toProjectTokenEnv(id);
 
@@ -283,5 +333,7 @@ export function runInit(opts: InitOptions) {
     outProjectFile,
     outComposeFile,
     tokenEnv,
+    wroteProject,
+    wroteCompose,
   };
 }
