@@ -71,10 +71,23 @@ sudo -n systemctl reload nginx
 
 ### Basic Auth для MCP (MVP)
 
-Создай `htpasswd` файл (пример: пользователь `mcp`):
+Создай `htpasswd` файлы:
+- админский (для `/health`/`/ready` и прочего),
+- отдельные на каждый проект (`/p/<projectId>/mcp`).
+
+Админский (пример: пользователь `mcp`):
 ```bash
 sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp mcp
 sudo -n chmod 600 /etc/nginx/.htpasswd-justgpt-mcp
+sudo -n nginx -t && sudo -n systemctl reload nginx
+```
+
+Проектные (примеры пользователей `p1` и `p2`):
+```bash
+sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-p1 p1
+sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-p2 p2
+
+sudo -n chmod 600 /etc/nginx/.htpasswd-justgpt-mcp-p1 /etc/nginx/.htpasswd-justgpt-mcp-p2
 sudo -n nginx -t && sudo -n systemctl reload nginx
 ```
 
@@ -82,8 +95,8 @@ sudo -n nginx -t && sudo -n systemctl reload nginx
 ```bash
 curl -fsS https://app.justgpt.ru/
 curl -fsS https://api.justgpt.ru/
-curl -fsS -u mcp:<PASSWORD> https://mcp.justgpt.ru/health
-curl -fsS -u mcp:<PASSWORD> https://mcp.justgpt.ru/ready
+curl -fsS -u mcp:<ADMIN_PASSWORD> https://mcp.justgpt.ru/health
+curl -fsS -u mcp:<ADMIN_PASSWORD> https://mcp.justgpt.ru/ready
 ```
 
 Примечание: для MVP в `deploy/projects/*.yml` рекомендуется `transport.stateful: false`, чтобы `initialize` можно было вызывать многократно (иначе сервер может отклонять повторную инициализацию до перезапуска контейнера).
@@ -97,7 +110,7 @@ curl -fsS -u mcp:<PASSWORD> https://mcp.justgpt.ru/ready
 1) `initialize`:
 ```bash
 curl -i -N --max-time 2 \
-  -u mcp:<PASSWORD> \
+  -u p1:<P1_PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
@@ -107,7 +120,7 @@ curl -i -N --max-time 2 \
 2) `tools/list`:
 ```bash
 curl -i -N --max-time 2 \
-  -u mcp:<PASSWORD> \
+  -u p1:<P1_PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -H 'mcp-protocol-version: 2025-03-26' \
