@@ -198,6 +198,35 @@ curl -i -N --max-time 2 \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"pg_pg_demo_select","arguments":{"table":"public.orders","whereEq":{"status":"paid"},"orderBy":"created_at","orderDir":"desc","limit":5}}}'
 ```
 
+### Проверка Timeweb Cloud OpenAPI проекта (tw)
+
+1) `initialize`:
+```bash
+curl -i -N --max-time 2 \
+  -u mcp:<ADMIN_PASSWORD> \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -H 'x-mcp-bearer-token: <TW_BEARER_TOKEN>' \
+  -X POST 'https://mcp.justgpt.ru/p/tw/mcp' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
+```
+
+2) `tools/list` (ожидается много инструментов, т.к. спецификация большая):
+```bash
+curl -i -N --max-time 2 \
+  -u mcp:<ADMIN_PASSWORD> \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -H 'mcp-protocol-version: 2025-03-26' \
+  -H 'mcp-session-id: <SESSION_ID>' \
+  -H 'x-mcp-bearer-token: <TW_BEARER_TOKEN>' \
+  -X POST 'https://mcp.justgpt.ru/p/tw/mcp' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+```
+
+Примечание: по умолчанию `deploy/projects/tw.yml` не включает auth к Timeweb API (вызовы будут работать, но upstream может отвечать `401`).
+Чтобы включить, раскомментируй `auth: bearer` и передай `TIMEWEB_CLOUD_TOKEN` в контейнер.
+
 ## 6) Добавить новый проект
 
 1. Создай `deploy/projects/<projectId>.yml` с `transport.path: /p/<projectId>/mcp`.
