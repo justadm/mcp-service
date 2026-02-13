@@ -1,0 +1,65 @@
+services:
+  traefik:
+    image: traefik:v3.4
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./acme:/acme
+    restart: unless-stopped
+
+  # Проект p1: mcp.justgpt.ru/p/p1/mcp
+  mcp_p1:
+    image: mcp-service:local
+    build:
+      context: ..
+    environment:
+      MCP_SERVICE_CONFIG: /app/project.yml
+    volumes:
+      - ./projects/p1.yml:/app/project.yml:ro
+      # Нужны example-файлы/spec, т.к. в конфиге есть ссылки на них.
+      - ../examples:/app/examples:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mcp_p1.rule=Host(`${DOMAIN_MCP}`) && Path(`/p/p1/mcp`)
+      - traefik.http.routers.mcp_p1.entrypoints=websecure
+      - traefik.http.routers.mcp_p1.tls=true
+      - traefik.http.routers.mcp_p1.tls.certresolver=le
+      - traefik.http.services.mcp_p1.loadbalancer.server.port=8080
+    restart: unless-stopped
+
+  # Проект p2: mcp.justgpt.ru/p/p2/mcp
+  mcp_p2:
+    image: mcp-service:local
+    build:
+      context: ..
+    environment:
+      MCP_SERVICE_CONFIG: /app/project.yml
+    volumes:
+      - ./projects/p2.yml:/app/project.yml:ro
+      - ../examples:/app/examples:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mcp_p2.rule=Host(`${DOMAIN_MCP}`) && Path(`/p/p2/mcp`)
+      - traefik.http.routers.mcp_p2.entrypoints=websecure
+      - traefik.http.routers.mcp_p2.tls=true
+      - traefik.http.routers.mcp_p2.tls.certresolver=le
+      - traefik.http.services.mcp_p2.loadbalancer.server.port=8080
+    restart: unless-stopped
+
+  # HTTP->HTTPS редирект для домена MCP (опционально, но удобно).
+  mcp_redirect:
+    image: traefik/whoami:v1.11
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mcp_redirect.rule=Host(`${DOMAIN_MCP}`)
+      - traefik.http.routers.mcp_redirect.entrypoints=web
+      - traefik.http.routers.mcp_redirect.middlewares=mcp_https_redirect
+      - traefik.http.middlewares.mcp_https_redirect.redirectscheme.scheme=https
+    restart: unless-stopped

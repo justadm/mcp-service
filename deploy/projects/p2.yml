@@ -1,0 +1,16 @@
+server:
+  name: mcp-service
+  version: 0.1.0
+
+transport:
+  type: http
+  host: 0.0.0.0
+  port: 8080
+  path: /p/p2/mcp
+  stateful: true
+
+sources:
+  - id: demo_json
+    type: json
+    file: examples/demo.json
+
