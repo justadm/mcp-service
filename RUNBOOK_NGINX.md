@@ -91,9 +91,7 @@ sudo -n nginx -t && sudo -n systemctl reload nginx
 
 ### Basic Auth для MCP (MVP)
 
-Создай `htpasswd` файлы:
-- админский (для `/health`/`/ready` и прочего),
-- отдельные на каждый проект (`/p/<projectId>/mcp`).
+Создай `htpasswd` файл только для админского Basic Auth (он будет общим и для `/health`/`/ready`, и для всех `/p/<projectId>/mcp`).
 
 Админский (пример: пользователь `mcp`):
 ```bash
@@ -102,15 +100,7 @@ sudo -n chmod 600 /etc/nginx/.htpasswd-justgpt-mcp
 sudo -n nginx -t && sudo -n systemctl reload nginx
 ```
 
-Проектные (примеры пользователей `p1` и `p2`):
-```bash
-sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-p1 p1
-sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-p2 p2
-sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp-pg pg
-
-sudo -n chmod 600 /etc/nginx/.htpasswd-justgpt-mcp-p1 /etc/nginx/.htpasswd-justgpt-mcp-p2 /etc/nginx/.htpasswd-justgpt-mcp-pg
-sudo -n nginx -t && sudo -n systemctl reload nginx
-```
+Примечание: per-project аутентификацию делаем внутри `mcp-service` через `transport.auth: bearer` (см. ниже), чтобы не плодить `htpasswd` и иметь токен на проект.
 
 Проверка:
 ```bash
@@ -133,7 +123,7 @@ curl -fsS -u mcp:<ADMIN_PASSWORD> https://mcp.justgpt.ru/ready
 1) `initialize`:
 ```bash
 curl -i -N --max-time 2 \
-  -u p1:<P1_PASSWORD> \
+  -u mcp:<ADMIN_PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -H 'x-mcp-bearer-token: <P1_BEARER_TOKEN>' \
@@ -144,7 +134,7 @@ curl -i -N --max-time 2 \
 2) `tools/list`:
 ```bash
 curl -i -N --max-time 2 \
-  -u p1:<P1_PASSWORD> \
+  -u mcp:<ADMIN_PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -H 'mcp-protocol-version: 2025-03-26' \
@@ -154,11 +144,24 @@ curl -i -N --max-time 2 \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 ```
 
+3) `tools/call` (пример для p1, OpenAPI Petstore: getPetById):
+```bash
+curl -i -N --max-time 2 \
+  -u mcp:<ADMIN_PASSWORD> \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -H 'mcp-protocol-version: 2025-03-26' \
+  -H 'mcp-session-id: <SESSION_ID>' \
+  -H 'x-mcp-bearer-token: <P1_BEARER_TOKEN>' \
+  -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"openapi_petstore_getPetById","arguments":{"params":{"petId":1}}}}'
+```
+
 ### Проверка demo Postgres проекта (pg)
 
 ```bash
 curl -i -N --max-time 2 \
-  -u pg:<PG_PASSWORD> \
+  -u mcp:<ADMIN_PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -H 'x-mcp-bearer-token: <PG_BEARER_TOKEN>' \
@@ -166,7 +169,33 @@ curl -i -N --max-time 2 \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
 ```
 
-Дальше можно вызвать `tools/list` и `call-tool` (например, `pg_pg_demo_list_tables` / `pg_pg_demo_select`), но удобнее это делать из MCP-клиента.
+Дальше можно вызвать `tools/list` и `tools/call` (например, `pg_pg_demo_list_tables` / `pg_pg_demo_select`).
+
+Пример: `pg_pg_demo_list_tables`:
+```bash
+curl -i -N --max-time 2 \
+  -u mcp:<ADMIN_PASSWORD> \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -H 'mcp-protocol-version: 2025-03-26' \
+  -H 'mcp-session-id: <SESSION_ID>' \
+  -H 'x-mcp-bearer-token: <PG_BEARER_TOKEN>' \
+  -X POST 'https://mcp.justgpt.ru/p/pg/mcp' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"pg_pg_demo_list_tables","arguments":{"schema":"public"}}}'
+```
+
+Пример: `pg_pg_demo_select` (все paid заказы, лимит 5):
+```bash
+curl -i -N --max-time 2 \
+  -u mcp:<ADMIN_PASSWORD> \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -H 'mcp-protocol-version: 2025-03-26' \
+  -H 'mcp-session-id: <SESSION_ID>' \
+  -H 'x-mcp-bearer-token: <PG_BEARER_TOKEN>' \
+  -X POST 'https://mcp.justgpt.ru/p/pg/mcp' \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"pg_pg_demo_select","arguments":{"table":"public.orders","whereEq":{"status":"paid"},"orderBy":"created_at","orderDir":"desc","limit":5}}}'
+```
 
 ## 6) Добавить новый проект
 
