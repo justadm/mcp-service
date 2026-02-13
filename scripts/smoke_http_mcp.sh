@@ -43,13 +43,7 @@ if [[ -n "$MCP_TOOL_ARGS_FILE" ]]; then
     exit 2
   fi
   # Trim trailing newlines/spaces to avoid accidental JSON parse errors.
-  MCP_TOOL_ARGS_JSON="$(python3 - <<'PY'
-import sys
-p = sys.argv[1]
-raw = open(p, "r", encoding="utf-8").read()
-print(raw.strip())
-PY
-"$MCP_TOOL_ARGS_FILE")"
+  MCP_TOOL_ARGS_JSON="$(python3 -c 'import sys; print(open(sys.argv[1], "r", encoding="utf-8").read().strip())' "$MCP_TOOL_ARGS_FILE")"
 fi
 
 tmp_headers="$(mktemp)"
