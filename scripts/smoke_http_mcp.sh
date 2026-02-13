@@ -30,7 +30,10 @@ require MCP_PROJECT_PATH
 require MCP_PROJECT_TOKEN
 
 MCP_PROTOCOL_VERSION="${MCP_PROTOCOL_VERSION:-2025-03-26}"
-MCP_TOOL_ARGS_JSON="${MCP_TOOL_ARGS_JSON:-{}}"
+# bash parameter expansion + "{}" is tricky because "}" can be parsed as the end of ${...}.
+# Use an intermediate variable to avoid accidental extra "}" in the result.
+DEFAULT_ARGS_JSON='{}'
+MCP_TOOL_ARGS_JSON="${MCP_TOOL_ARGS_JSON:-$DEFAULT_ARGS_JSON}"
 
 tmp_headers="$(mktemp)"
 trap 'rm -f "$tmp_headers"' EXIT
@@ -77,7 +80,9 @@ if [[ -n "${MCP_TOOL_NAME:-}" ]]; then
 {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"$MCP_TOOL_NAME","arguments":$MCP_TOOL_ARGS_JSON}}
 JSON
   )
-  curl -fsS \
+  # Print response body on error to make debugging easier.
+  call_out="$(mktemp)"
+  if ! curl -fsS -o "$call_out" \
     -u "${MCP_BASIC_USER}:${MCP_BASIC_PASS}" \
     -H "content-type: application/json" \
     -H "accept: application/json, text/event-stream" \
@@ -85,7 +90,12 @@ JSON
     -H "mcp-session-id: ${session_id}" \
     -H "x-mcp-bearer-token: ${MCP_PROJECT_TOKEN}" \
     -X POST "${MCP_BASE_URL}${MCP_PROJECT_PATH}" \
-    -d "$call_body" >/dev/null
+    -d "$call_body"; then
+    echo "tools/call: failed ($MCP_TOOL_NAME)" >&2
+    sed -n '1,200p' "$call_out" >&2 || true
+    rm -f "$call_out"
+    exit 4
+  fi
+  rm -f "$call_out"
   echo "tools/call: ok ($MCP_TOOL_NAME)"
 fi
-
