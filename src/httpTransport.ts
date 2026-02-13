@@ -35,6 +35,22 @@ export async function serveHttp(server: McpServer, cfg: AppConfig["transport"]) 
   const srv = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+
+      if (url.pathname === "/health") {
+        res.statusCode = 200;
+        res.setHeader("content-type", "application/json; charset=utf-8");
+        res.end(JSON.stringify({ ok: true }));
+        return;
+      }
+
+      if (url.pathname === "/ready") {
+        const ready = server.isConnected();
+        res.statusCode = ready ? 200 : 503;
+        res.setHeader("content-type", "application/json; charset=utf-8");
+        res.end(JSON.stringify({ ok: ready }));
+        return;
+      }
+
       if (url.pathname !== mcpPath) {
         res.statusCode = 404;
         res.setHeader("content-type", "application/json; charset=utf-8");
@@ -68,4 +84,3 @@ export async function serveHttp(server: McpServer, cfg: AppConfig["transport"]) 
     srv.listen(port, host, () => resolve());
   });
 }
-

@@ -50,6 +50,37 @@ docker compose -f docker-compose.prod.yml up -d --build
   - `https://mcp.justgpt.ru/p/p1/mcp`
   - `https://mcp.justgpt.ru/p/p2/mcp`
 
+### Быстрая проверка HTTP (health/ready)
+
+```bash
+curl -fsS https://mcp.justgpt.ru/health
+curl -fsS https://mcp.justgpt.ru/ready
+```
+
+### Минимальная ручная проверка MCP через curl
+
+Примечания:
+- ответ идет через SSE, поэтому `curl` будет “висеть”; добавляй `--max-time 2` для краткого прогона.
+- после `initialize` сервер вернет заголовок `mcp-session-id`, его надо передавать дальше.
+
+1) `initialize` (создает сессию):
+```bash
+curl -i -N --max-time 2 \
+  -H 'content-type: application/json' \
+  -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
+```
+
+2) `tools/list` (подставь `<SESSION_ID>` из `mcp-session-id`):
+```bash
+curl -i -N --max-time 2 \
+  -H 'content-type: application/json' \
+  -H 'mcp-protocol-version: 2025-03-26' \
+  -H 'mcp-session-id: <SESSION_ID>' \
+  -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+```
+
 ## 4) Добавление нового проекта
 
 Паттерн “1 проект = 1 контейнер”:
@@ -65,4 +96,3 @@ docker compose -f deploy/docker-compose.prod.yml up -d --build
 
 - В текущей реализации `mcp-service` проверяет путь на точное совпадение с `transport.path`, поэтому path нужно задавать “как снаружи”, например `/p/p1/mcp`.
 - Секреты (`connectionString`, токены) сейчас просто в YAML. В roadmap есть задача перейти на `*_FILE`/secret manager.
-
