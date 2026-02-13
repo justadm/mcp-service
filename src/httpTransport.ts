@@ -109,10 +109,20 @@ export async function serveHttp(config: AppConfig) {
       }
 
       if (auth.type === "bearer") {
-        const h = String(req.headers["authorization"] ?? "");
-        const expected = `Bearer ${auth.token}`;
-        if (h !== expected) {
+        const authHeader = String(req.headers["authorization"] ?? "").trim();
+        const xToken =
+          String(req.headers["x-mcp-bearer-token"] ?? "").trim() ||
+          String(req.headers["x-project-token"] ?? "").trim();
+
+        const okByX = xToken && xToken === auth.token;
+        const okByAuthorization =
+          authHeader.startsWith("Bearer ") &&
+          authHeader.slice("Bearer ".length).trim() === auth.token;
+
+        if (!okByX && !okByAuthorization) {
           res.statusCode = 401;
+          // Если клиент использует nginx Basic Auth, одновременно передать Bearer через Authorization нельзя.
+          // Поэтому поддерживаем кастомный заголовок X-MCP-Bearer-Token.
           res.setHeader("www-authenticate", 'Bearer realm="mcp-service"');
           res.setHeader("content-type", "application/json; charset=utf-8");
           res.end(JSON.stringify({ error: "unauthorized" }));
