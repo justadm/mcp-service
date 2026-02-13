@@ -10,6 +10,8 @@
 ## 1) DNS
 
 A/AAAA на IP этой VM:
+- `justgpt.ru`
+- `www.justgpt.ru`
 - `app.justgpt.ru`
 - `api.justgpt.ru`
 - `mcp.justgpt.ru`
@@ -57,7 +59,7 @@ sudo -n systemctl reload nginx
 ```bash
 sudo -n certbot certonly --webroot -w /var/www/letsencrypt \
   --cert-name justgpt.ru \
-  -d app.justgpt.ru -d api.justgpt.ru -d mcp.justgpt.ru
+  -d justgpt.ru -d www.justgpt.ru -d app.justgpt.ru -d api.justgpt.ru -d mcp.justgpt.ru
 ```
 
 После успешной выдачи сертификата включи HTTPS-конфиг:
