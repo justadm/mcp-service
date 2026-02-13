@@ -36,6 +36,7 @@ docker compose -f deploy/docker-compose.nginx.yml up -d --build
 - `127.0.0.1:19001` (p1)
 - `127.0.0.1:19002` (p2)
 - `127.0.0.1:19003` (pg, если поднят `deploy/docker-compose.nginx.pg.yml`)
+- `127.0.0.1:19004` (tw)
 
 ## 3) Подготовить webroot для Let’s Encrypt (HTTP-01)
 
