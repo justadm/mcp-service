@@ -69,12 +69,21 @@ sudo -n nginx -t
 sudo -n systemctl reload nginx
 ```
 
+### Basic Auth для MCP (MVP)
+
+Создай `htpasswd` файл (пример: пользователь `mcp`):
+```bash
+sudo -n htpasswd -c /etc/nginx/.htpasswd-justgpt-mcp mcp
+sudo -n chmod 600 /etc/nginx/.htpasswd-justgpt-mcp
+sudo -n nginx -t && sudo -n systemctl reload nginx
+```
+
 Проверка:
 ```bash
 curl -fsS https://app.justgpt.ru/
 curl -fsS https://api.justgpt.ru/
-curl -fsS https://mcp.justgpt.ru/health
-curl -fsS https://mcp.justgpt.ru/ready
+curl -fsS -u mcp:<PASSWORD> https://mcp.justgpt.ru/health
+curl -fsS -u mcp:<PASSWORD> https://mcp.justgpt.ru/ready
 ```
 
 ## Минимальная ручная проверка MCP через curl
@@ -86,6 +95,7 @@ curl -fsS https://mcp.justgpt.ru/ready
 1) `initialize`:
 ```bash
 curl -i -N --max-time 2 \
+  -u mcp:<PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
@@ -95,6 +105,7 @@ curl -i -N --max-time 2 \
 2) `tools/list`:
 ```bash
 curl -i -N --max-time 2 \
+  -u mcp:<PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -H 'mcp-protocol-version: 2025-03-26' \
