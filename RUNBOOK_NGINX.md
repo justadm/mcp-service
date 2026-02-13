@@ -86,6 +86,8 @@ curl -fsS -u mcp:<PASSWORD> https://mcp.justgpt.ru/health
 curl -fsS -u mcp:<PASSWORD> https://mcp.justgpt.ru/ready
 ```
 
+Примечание: для MVP в `deploy/projects/*.yml` рекомендуется `transport.stateful: false`, чтобы `initialize` можно было вызывать многократно (иначе сервер может отклонять повторную инициализацию до перезапуска контейнера).
+
 ## Минимальная ручная проверка MCP через curl
 
 Примечания:

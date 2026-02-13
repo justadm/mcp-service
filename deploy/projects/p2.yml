@@ -7,10 +7,9 @@ transport:
   host: 0.0.0.0
   port: 8080
   path: /p/p2/mcp
-  stateful: true
+  stateful: false
 
 sources:
   - id: demo_json
     type: json
     file: examples/demo.json
-
