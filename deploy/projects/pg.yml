@@ -7,7 +7,7 @@ transport:
   host: 0.0.0.0
   port: 8080
   path: /p/pg/mcp
-  stateful: false
+  stateful: true
 
 sources:
   - id: pg_demo
@@ -18,4 +18,3 @@ sources:
       - public.users
       - public.orders
     maxLimit: 500
-

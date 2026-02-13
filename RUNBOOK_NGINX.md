@@ -120,12 +120,12 @@ curl -fsS -u mcp:<ADMIN_PASSWORD> https://mcp.justgpt.ru/health
 curl -fsS -u mcp:<ADMIN_PASSWORD> https://mcp.justgpt.ru/ready
 ```
 
-Примечание: для MVP в `deploy/projects/*.yml` рекомендуется `transport.stateful: false`, чтобы `initialize` можно было вызывать многократно (иначе сервер может отклонять повторную инициализацию до перезапуска контейнера).
+Примечание: в текущей реализации `StreamableHTTPServerTransport` требует `stateful: true` для долгоживущего HTTP-сервиса (иначе транспорт "одноразовый" и не может обслуживать несколько запросов подряд). Поэтому в `deploy/projects/*.yml` используем `transport.stateful: true`.
 
 ## Минимальная ручная проверка MCP через curl
 
 Примечания:
-- ответ идет через SSE, поэтому `curl` будет “висеть”; добавляй `--max-time 2`.
+- `Accept` должен включать и `application/json`, и `text/event-stream` (требование спецификации Streamable HTTP).
 - после `initialize` сервер вернет заголовок `mcp-session-id`, его надо передавать дальше.
 
 1) `initialize`:
