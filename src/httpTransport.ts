@@ -13,6 +13,9 @@ export async function serveHttp(server: McpServer, cfg: AppConfig["transport"]) 
 
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: stateful ? () => randomUUID() : undefined,
+    // В реальности SSE-стриминг может быть хрупким за reverse-proxy.
+    // Для MVP включаем JSON ответы (без SSE), чтобы снизить количество "магии" при деплое.
+    enableJsonResponse: true,
   });
 
   transport.onerror = (err) => {
