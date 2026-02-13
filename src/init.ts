@@ -101,8 +101,11 @@ export function renderProjectYaml(opts: InitOptions) {
     };
     sources.push(src);
   } else if (opts.type === "json") {
-    // Если задан host json file (будет смонтирован в compose), то внутри контейнера читаем фиксированный путь.
-    const containerFile = opts.json?.file?.trim() ? "/app/data.json" : "examples/demo.json";
+    // Для JSON-проектов всегда используем managed data file.
+    // Это позволяет позже обновлять источник данных без пересоздания project.yml/compose.
+    const _hostFile = (opts.json?.file?.trim() || `data/${id}.json`).trim();
+    void _hostFile; // используется в compose; здесь оставляем явную связь.
+    const containerFile = "/app/data.json";
     sources.push({
       id: "json_main",
       type: "json",
@@ -168,10 +171,11 @@ export function renderComposeYaml(opts: InitOptions) {
     restart: "unless-stopped",
   };
 
-  if (opts.type === "json" && opts.json?.file?.trim()) {
+  if (opts.type === "json") {
     // Это путь на хосте относительно deploy/ (compose файл живет в deploy/).
     // Монтируем его в фиксированный путь, который прописан в project.yml: /app/data.json
-    const hostFile = opts.json.file.trim().startsWith("./") ? opts.json.file.trim() : `./${opts.json.file.trim()}`;
+    const rel = (opts.json?.file?.trim() || `data/${id}.json`).trim();
+    const hostFile = rel.startsWith("./") ? rel : `./${rel}`;
     (svc.volumes as any[]).push(`${hostFile}:/app/data.json:ro`);
   }
 

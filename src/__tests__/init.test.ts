@@ -24,4 +24,9 @@ describe("init", () => {
     expect(compose).toContain("127.0.0.1:19055:8080");
     expect(compose).toContain("./data/j2.json:/app/data.json:ro");
   });
+
+  it("defaults json managed file path to data/<id>.json", () => {
+    const compose = renderComposeYaml({ id: "j3", type: "json", hostPort: 19056 });
+    expect(compose).toContain("./data/j3.json:/app/data.json:ro");
+  });
 });
