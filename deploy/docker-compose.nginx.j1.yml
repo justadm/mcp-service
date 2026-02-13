@@ -1,0 +1,14 @@
+services:
+  mcp_j1:
+    image: mcp-service:local
+    build:
+      context: ..
+    environment:
+      MCP_SERVICE_CONFIG: /app/project.yml
+      MCP_BEARER_TOKEN: ${MCP_J1_BEARER_TOKEN}
+    volumes:
+      - ./projects/j1.yml:/app/project.yml:ro
+      - ../examples:/app/examples:ro
+    ports:
+      - 127.0.0.1:19006:8080
+    restart: unless-stopped
