@@ -37,8 +37,7 @@ services:
     environment:
       MCP_SERVICE_CONFIG: /app/project.yml
       MCP_BEARER_TOKEN: ${MCP_TW_BEARER_TOKEN}
-      # Для включения авторизации Timeweb Cloud API (если включишь в deploy/projects/tw.yml):
-      # TIMEWEB_CLOUD_TOKEN: ${TIMEWEB_CLOUD_TOKEN}
+      TIMEWEB_TOKEN: ${TIMEWEB_TOKEN}
     volumes:
       - ./projects/tw.yml:/app/project.yml:ro
       - ../examples:/app/examples:ro

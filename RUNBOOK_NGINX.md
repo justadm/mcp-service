@@ -224,8 +224,7 @@ curl -i -N --max-time 2 \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 ```
 
-Примечание: по умолчанию `deploy/projects/tw.yml` не включает auth к Timeweb API (вызовы будут работать, но upstream может отвечать `401`).
-Чтобы включить, раскомментируй `auth: bearer` и передай `TIMEWEB_CLOUD_TOKEN` в контейнер.
+Примечание: `deploy/projects/tw.yml` использует auth к Timeweb API через `TIMEWEB_TOKEN` (нужен реальный токен).
 
 ## 6) Добавить новый проект
 

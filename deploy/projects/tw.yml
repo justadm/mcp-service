@@ -20,6 +20,7 @@ sources:
     # Чтобы включить авторизацию в Timeweb Cloud API:
     # auth:
     #   type: bearer
-    #   tokenEnv: TIMEWEB_CLOUD_TOKEN
+    #   tokenEnv: TIMEWEB_TOKEN
     auth:
-      type: none
+      type: bearer
+      tokenEnv: TIMEWEB_TOKEN
