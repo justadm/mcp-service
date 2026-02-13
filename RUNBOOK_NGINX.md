@@ -36,13 +36,15 @@ sudo -n chmod -R 755 /var/www/letsencrypt
 
 ## 4) Подключить nginx конфиг justgpt.ru (HTTP stub + proxy)
 
-Шаблон лежит в репо:
-- `deploy/nginx/justgpt.ru.conf`
+Шаблоны лежат в репо:
+- `deploy/nginx/justgpt.ru.http.conf` (80/tcp, ACME + 200 заглушка)
+- `deploy/nginx/justgpt.ru.https.conf` (443/tcp, после выпуска сертификата)
 
 На VM:
 ```bash
-sudo -n cp /opt/mcp-service/deploy/nginx/justgpt.ru.conf /etc/nginx/sites-available/justgpt.ru
-sudo -n ln -sf /etc/nginx/sites-available/justgpt.ru /etc/nginx/sites-enabled/justgpt.ru
+sudo -n cp /opt/mcp-service/deploy/nginx/justgpt.ru.http.conf /etc/nginx/sites-available/justgpt.ru.http
+sudo -n ln -sf /etc/nginx/sites-available/justgpt.ru.http /etc/nginx/sites-enabled/justgpt.ru.http
+
 sudo -n nginx -t
 sudo -n systemctl reload nginx
 ```
@@ -54,11 +56,15 @@ sudo -n systemctl reload nginx
 Рекомендуемый способ (минимум “магии” в nginx-конфигах) через `webroot`:
 ```bash
 sudo -n certbot certonly --webroot -w /var/www/letsencrypt \
+  --cert-name justgpt.ru \
   -d app.justgpt.ru -d api.justgpt.ru -d mcp.justgpt.ru
 ```
 
-После успешной выдачи сертификата:
+После успешной выдачи сертификата включи HTTPS-конфиг:
 ```bash
+sudo -n cp /opt/mcp-service/deploy/nginx/justgpt.ru.https.conf /etc/nginx/sites-available/justgpt.ru.https
+sudo -n ln -sf /etc/nginx/sites-available/justgpt.ru.https /etc/nginx/sites-enabled/justgpt.ru.https
+
 sudo -n nginx -t
 sudo -n systemctl reload nginx
 ```
@@ -81,4 +87,3 @@ curl -fsS https://mcp.justgpt.ru/ready
 docker compose -f deploy/docker-compose.nginx.yml up -d --build
 sudo -n nginx -t && sudo -n systemctl reload nginx
 ```
-
