@@ -5,24 +5,24 @@ import { createConnector } from "./connectors/factory.js";
 import { serveHttp } from "./httpTransport.js";
 
 export async function runServer(config: AppConfig) {
-  const server = new McpServer({
-    name: config.server.name,
-    version: config.server.version,
-  });
-
-  for (const src of config.sources) {
-    const c = createConnector(src);
-    await c.register({ server });
-  }
-
   if (config.transport.type === "stdio") {
+    const server = new McpServer({
+      name: config.server.name,
+      version: config.server.version,
+    });
+
+    for (const src of config.sources) {
+      const c = createConnector(src);
+      await c.register({ server });
+    }
+
     const transport = new StdioServerTransport();
     await server.connect(transport);
     return;
   }
 
   if (config.transport.type === "http") {
-    await serveHttp(server, config.transport);
+    await serveHttp(config);
     return;
   }
 
