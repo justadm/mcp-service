@@ -101,10 +101,12 @@ export function renderProjectYaml(opts: InitOptions) {
     };
     sources.push(src);
   } else if (opts.type === "json") {
+    // Если задан host json file (будет смонтирован в compose), то внутри контейнера читаем фиксированный путь.
+    const containerFile = opts.json?.file?.trim() ? "/app/data.json" : "examples/demo.json";
     sources.push({
       id: "json_main",
       type: "json",
-      file: opts.json?.file?.trim() || "examples/demo.json",
+      file: containerFile,
     });
   } else if (opts.type === "postgres") {
     sources.push({
@@ -165,6 +167,13 @@ export function renderComposeYaml(opts: InitOptions) {
     ports: [`127.0.0.1:${hostPort}:8080`],
     restart: "unless-stopped",
   };
+
+  if (opts.type === "json" && opts.json?.file?.trim()) {
+    // Это путь на хосте относительно deploy/ (compose файл живет в deploy/).
+    // Монтируем его в фиксированный путь, который прописан в project.yml: /app/data.json
+    const hostFile = opts.json.file.trim().startsWith("./") ? opts.json.file.trim() : `./${opts.json.file.trim()}`;
+    (svc.volumes as any[]).push(`${hostFile}:/app/data.json:ro`);
+  }
 
   if (opts.type === "mysql") {
     svc.extra_hosts = ["host.docker.internal:host-gateway"];

@@ -22,6 +22,7 @@ function usage() {
   console.error("  (openapi) --openapi-spec <file> --openapi-base-url <url>");
   console.error("  (openapi) --openapi-auth none|bearer --openapi-token-env OPENAPI_TOKEN");
   console.error("  (mysql)   --mysql-database <db>");
+  console.error("  (json)    --json-file ./data/<id>.json   (host file mounted into container)");
 }
 
 const args = process.argv.slice(2);
@@ -42,6 +43,7 @@ let openapiBaseUrl: string | undefined;
 let openapiAuthType: "none" | "bearer" | undefined;
 let openapiTokenEnv: string | undefined;
 let mysqlDatabase: string | undefined;
+let jsonFile: string | undefined;
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === "--config" || a === "-c") configPath = args[i + 1];
@@ -71,6 +73,7 @@ for (let i = 0; i < args.length; i++) {
   if (a === "--openapi-token-env") openapiTokenEnv = args[i + 1];
 
   if (a === "--mysql-database") mysqlDatabase = args[i + 1];
+  if (a === "--json-file") jsonFile = args[i + 1];
 }
 
 if (sub === "init") {
@@ -89,6 +92,7 @@ if (sub === "init") {
     envExampleFile,
     updateNginxConf,
     nginxConfFile,
+    json: initType === "json" ? { file: jsonFile } : undefined,
     openapi:
       initType === "openapi"
         ? {
