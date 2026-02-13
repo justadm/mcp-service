@@ -127,6 +127,7 @@ curl -fsS -u mcp:<ADMIN_PASSWORD> https://mcp.justgpt.ru/ready
 Примечания:
 - `Accept` должен включать и `application/json`, и `text/event-stream` (требование спецификации Streamable HTTP).
 - после `initialize` сервер вернет заголовок `mcp-session-id`, его надо передавать дальше.
+- если включен `transport.auth: bearer`, добавь заголовок `Authorization: Bearer <TOKEN>` (токен per-project).
 
 1) `initialize`:
 ```bash
@@ -134,6 +135,7 @@ curl -i -N --max-time 2 \
   -u p1:<P1_PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
+  -H 'authorization: Bearer <P1_BEARER_TOKEN>' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
 ```
@@ -146,6 +148,7 @@ curl -i -N --max-time 2 \
   -H 'accept: application/json, text/event-stream' \
   -H 'mcp-protocol-version: 2025-03-26' \
   -H 'mcp-session-id: <SESSION_ID>' \
+  -H 'authorization: Bearer <P1_BEARER_TOKEN>' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 ```
@@ -157,6 +160,7 @@ curl -i -N --max-time 2 \
   -u pg:<PG_PASSWORD> \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
+  -H 'authorization: Bearer <PG_BEARER_TOKEN>' \
   -X POST 'https://mcp.justgpt.ru/p/pg/mcp' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0.0"}}}'
 ```

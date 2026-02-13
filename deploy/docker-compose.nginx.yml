@@ -6,6 +6,7 @@ services:
       context: ..
     environment:
       MCP_SERVICE_CONFIG: /app/project.yml
+      MCP_BEARER_TOKEN: ${MCP_P1_BEARER_TOKEN}
     volumes:
       - ./projects/p1.yml:/app/project.yml:ro
       - ../examples:/app/examples:ro
@@ -20,10 +21,10 @@ services:
       context: ..
     environment:
       MCP_SERVICE_CONFIG: /app/project.yml
+      MCP_BEARER_TOKEN: ${MCP_P2_BEARER_TOKEN}
     volumes:
       - ./projects/p2.yml:/app/project.yml:ro
       - ../examples:/app/examples:ro
     ports:
       - "127.0.0.1:19002:8080"
     restart: unless-stopped
-

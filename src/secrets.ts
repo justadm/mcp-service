@@ -67,9 +67,27 @@ function resolveSource(s: SourceConfig): SourceConfig {
 }
 
 export function resolveSecrets(cfg: AppConfig): AppConfig {
+  const transportAuth = cfg.transport.auth ?? { type: "none" as const };
+  const resolvedTransportAuth =
+    transportAuth.type === "bearer"
+      ? (() => {
+          const token =
+            (transportAuth.token ?? "").trim() ||
+            (transportAuth.tokenFile ? readSecretFile(transportAuth.tokenFile) : "") ||
+            (transportAuth.tokenEnv ? readEnv(transportAuth.tokenEnv) : "");
+          if (!token) {
+            throw new Error(`[transport] bearer auth требует token | tokenFile | tokenEnv.`);
+          }
+          return { type: "bearer" as const, token };
+        })()
+      : ({ type: "none" as const });
+
   return {
     ...cfg,
+    transport: {
+      ...cfg.transport,
+      auth: resolvedTransportAuth,
+    },
     sources: cfg.sources.map(resolveSource),
   };
 }
-

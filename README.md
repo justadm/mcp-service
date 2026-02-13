@@ -77,3 +77,18 @@ npm run probe
 
 - Для OpenAPI входная схема tools пока унифицированная (`params/query/headers/body`) и не генерируется из OpenAPI schema.
 - Для `postgres` намеренно нет “сырого SQL”; только `select` с ограничениями.
+
+## Transport auth (HTTP)
+
+Для HTTP транспорта можно включить простую аутентификацию Bearer-токеном (per-project):
+
+```yml
+transport:
+  type: http
+  auth:
+    type: bearer
+    tokenEnv: MCP_BEARER_TOKEN
+```
+
+В этом режиме каждый HTTP запрос к `transport.path` должен содержать заголовок:
+`Authorization: Bearer <TOKEN>`.

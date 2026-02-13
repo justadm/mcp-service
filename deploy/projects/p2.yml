@@ -8,6 +8,9 @@ transport:
   port: 8080
   path: /p/p2/mcp
   stateful: true
+  auth:
+    type: bearer
+    tokenEnv: MCP_BEARER_TOKEN
 
 sources:
   - id: demo_json

@@ -20,6 +20,7 @@ export async function serveHttp(config: AppConfig) {
   const port = cfg.port ?? 8080;
   const mcpPath = cfg.path ?? "/mcp";
   const stateful = cfg.stateful ?? true;
+  const auth = cfg.auth ?? { type: "none" as const };
   const maxBodyBytes = 1_000_000;
 
   async function createServer() {
@@ -105,6 +106,18 @@ export async function serveHttp(config: AppConfig) {
         res.setHeader("content-type", "application/json; charset=utf-8");
         res.end(JSON.stringify({ error: "not found" }));
         return;
+      }
+
+      if (auth.type === "bearer") {
+        const h = String(req.headers["authorization"] ?? "");
+        const expected = `Bearer ${auth.token}`;
+        if (h !== expected) {
+          res.statusCode = 401;
+          res.setHeader("www-authenticate", 'Bearer realm="mcp-service"');
+          res.setHeader("content-type", "application/json; charset=utf-8");
+          res.end(JSON.stringify({ error: "unauthorized" }));
+          return;
+        }
       }
 
       const now = Date.now();

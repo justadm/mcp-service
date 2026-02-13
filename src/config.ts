@@ -77,6 +77,19 @@ export const AppConfig = z.object({
       // stateful: сервер выдает sessionId и валидирует его.
       // stateless: sessionIdGenerator = undefined.
       stateful: z.boolean().optional().default(true),
+      // Транспортная аутентификация (MVP): per-project Bearer token.
+      auth: z
+        .union([
+          z.object({ type: z.literal("none") }),
+          z.object({
+            type: z.literal("bearer"),
+            token: z.string().min(1).optional(),
+            tokenFile: z.string().min(1).optional(),
+            tokenEnv: z.string().min(1).optional(),
+          }),
+        ])
+        .optional()
+        .default({ type: "none" }),
     })
     .default({
       type: "stdio",
@@ -84,6 +97,7 @@ export const AppConfig = z.object({
       port: 8080,
       path: "/mcp",
       stateful: true,
+      auth: { type: "none" },
     }),
   sources: z.array(SourceConfig).min(1),
 });
