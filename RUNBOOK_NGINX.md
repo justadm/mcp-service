@@ -28,7 +28,7 @@ A/AAAA на IP этой VM:
 
 В каталоге репозитория:
 ```bash
-cd /opt/mcp-service   # пример
+cd /opt/justgpt-mcp-service   # пример
 docker compose -f deploy/docker-compose.nginx.yml up -d --build
 ```
 
@@ -64,8 +64,8 @@ ssh -N -R 127.0.0.1:13306:127.0.0.1:3306 msk
 Пример установки на VM:
 ```bash
 sudo -n mkdir -p /opt/justgpt-mysql-tunnel-proxy
-sudo -n cp /opt/mcp-service/deploy/systemd/mysql_tunnel_proxy.py /opt/justgpt-mysql-tunnel-proxy/mysql_tunnel_proxy.py
-sudo -n cp /opt/mcp-service/deploy/systemd/justgpt-mysql-tunnel-proxy.service /etc/systemd/system/justgpt-mysql-tunnel-proxy.service
+sudo -n cp /opt/justgpt-mcp-service/deploy/systemd/mysql_tunnel_proxy.py /opt/justgpt-mysql-tunnel-proxy/mysql_tunnel_proxy.py
+sudo -n cp /opt/justgpt-mcp-service/deploy/systemd/justgpt-mysql-tunnel-proxy.service /etc/systemd/system/justgpt-mysql-tunnel-proxy.service
 sudo -n systemctl daemon-reload
 sudo -n systemctl enable --now justgpt-mysql-tunnel-proxy
 sudo -n systemctl status justgpt-mysql-tunnel-proxy --no-pager
@@ -119,7 +119,7 @@ sudo -n chmod -R 755 /var/www/letsencrypt
 
 На VM:
 ```bash
-sudo -n cp /opt/mcp-service/deploy/nginx/justgpt.ru.http.conf /etc/nginx/sites-available/justgpt.ru.http
+sudo -n cp /opt/justgpt-mcp-service/deploy/nginx/justgpt.ru.http.conf /etc/nginx/sites-available/justgpt.ru.http
 sudo -n ln -sf /etc/nginx/sites-available/justgpt.ru.http /etc/nginx/sites-enabled/justgpt.ru.http
 
 sudo -n nginx -t
@@ -139,7 +139,7 @@ sudo -n certbot certonly --webroot -w /var/www/letsencrypt \
 
 После успешной выдачи сертификата включи HTTPS-конфиг:
 ```bash
-sudo -n cp /opt/mcp-service/deploy/nginx/justgpt.ru.https.conf /etc/nginx/sites-available/justgpt.ru.https
+sudo -n cp /opt/justgpt-mcp-service/deploy/nginx/justgpt.ru.https.conf /etc/nginx/sites-available/justgpt.ru.https
 sudo -n ln -sf /etc/nginx/sites-available/justgpt.ru.https /etc/nginx/sites-enabled/justgpt.ru.https
 
 sudo -n nginx -t
@@ -151,7 +151,7 @@ sudo -n systemctl reload nginx
 В `deploy/nginx/justgpt.ru.http.conf` настроен 301 редирект на HTTPS (кроме `/.well-known/acme-challenge/`).
 После изменения шаблона не забудь обновить файл на VM:
 ```bash
-sudo -n cp /opt/mcp-service/deploy/nginx/justgpt.ru.http.conf /etc/nginx/sites-available/justgpt.ru.http
+sudo -n cp /opt/justgpt-mcp-service/deploy/nginx/justgpt.ru.http.conf /etc/nginx/sites-available/justgpt.ru.http
 sudo -n nginx -t && sudo -n systemctl reload nginx
 ```
 
