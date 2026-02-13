@@ -201,9 +201,17 @@ curl -i -N --max-time 2 \
 
 1. Создай `deploy/projects/<projectId>.yml` с `transport.path: /p/<projectId>/mcp`.
 2. Добавь сервис в `deploy/docker-compose.nginx.yml` (новый порт 127.0.0.1:19xxx).
-3. Добавь `location = /p/<projectId>/mcp` в nginx конфиг `/etc/nginx/sites-available/justgpt.ru`.
-4. Применить:
+3. Сгенерируй per-project token и пропиши в `deploy/.env` на VM:
+   - переменная: `MCP_<PROJECTID>_BEARER_TOKEN=<random>`
+   - в compose сервиса прокинь в контейнер:
+     - `MCP_BEARER_TOKEN: ${MCP_<PROJECTID>_BEARER_TOKEN}`
+4. Добавь `location = /p/<projectId>/mcp` в nginx конфиг `/etc/nginx/sites-available/justgpt.ru.https` (server `mcp.justgpt.ru`).
+5. Применить:
 ```bash
 docker compose -f deploy/docker-compose.nginx.yml up -d --build
 sudo -n nginx -t && sudo -n systemctl reload nginx
 ```
+
+Примечание по аутентификации:
+- nginx: общий Basic Auth (`mcp:<ADMIN_PASSWORD>`)
+- mcp-service: per-project Bearer через `transport.auth: bearer` (передавать `X-MCP-Bearer-Token: <TOKEN>`).

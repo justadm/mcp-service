@@ -1,0 +1,26 @@
+server:
+  name: mcp-service
+  version: 0.1.0
+
+transport:
+  type: http
+  host: 0.0.0.0
+  port: 8080
+  path: /p/<projectId>/mcp
+  stateful: true
+  auth:
+    type: bearer
+    tokenEnv: MCP_BEARER_TOKEN
+
+sources:
+  - id: pg_main
+    type: postgres
+    # Рекомендуется хранить DSN вне YAML:
+    # connectionStringFile: /run/secrets/pg_dsn
+    # connectionStringEnv: PG_CONNECTION_STRING
+    connectionString: postgresql://user:pass@host:5432/db
+    schema: public
+    allowTables:
+      - public.users
+      - public.orders
+    maxLimit: 500
