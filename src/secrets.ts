@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { AppConfig, OpenApiSourceConfig, PostgresSourceConfig, SourceConfig } from "./config.js";
+import type { AppConfig, MysqlSourceConfig, OpenApiSourceConfig, PostgresSourceConfig, SourceConfig } from "./config.js";
 
 function absPath(p: string) {
   return path.isAbsolute(p) ? p : path.join(process.cwd(), p);
@@ -60,9 +60,23 @@ function resolvePostgres(src: PostgresSourceConfig): PostgresSourceConfig {
   return { ...src, connectionString: cs };
 }
 
+function resolveMysql(src: MysqlSourceConfig): MysqlSourceConfig {
+  const cs =
+    (src.connectionString ?? "").trim() ||
+    (src.connectionStringFile ? readSecretFile(src.connectionStringFile) : "") ||
+    (src.connectionStringEnv ? readEnv(src.connectionStringEnv) : "");
+  if (!cs) {
+    throw new Error(
+      `[mysql:${src.id}] требуется connectionString | connectionStringFile | connectionStringEnv.`,
+    );
+  }
+  return { ...src, connectionString: cs };
+}
+
 function resolveSource(s: SourceConfig): SourceConfig {
   if (s.type === "openapi") return resolveOpenApiAuth(s);
   if (s.type === "postgres") return resolvePostgres(s);
+  if (s.type === "mysql") return resolveMysql(s);
   return s;
 }
 

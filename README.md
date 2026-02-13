@@ -7,6 +7,7 @@
 - `csv`: читает локальный CSV и дает tools для чтения строк и простого фильтра `eq`.
 - `json`: читает локальный JSON и дает tools для получения значения по JSON Pointer.
 - `postgres`: безопасные инструменты для таблиц Postgres (список таблиц, описание, select с whereEq).
+- `mysql`: безопасные инструменты для таблиц MySQL (список таблиц, описание, select с whereEq).
 
 ## Быстрый старт
 
@@ -65,18 +66,21 @@ npm run probe
 
 ## Секреты (MVP)
 
-Для `openapi` и `postgres` поддержаны секреты через `*_File` или `*_Env`:
+Для `openapi`, `postgres` и `mysql` поддержаны секреты через `*_File` или `*_Env`:
 - `openapi.auth.type: bearer`:
   - `token` или `tokenFile` или `tokenEnv`
 - `openapi.auth.type: header`:
   - `value` или `valueFile` или `valueEnv`
 - `postgres`:
   - `connectionString` или `connectionStringFile` или `connectionStringEnv`
+- `mysql`:
+  - `connectionString` или `connectionStringFile` или `connectionStringEnv`
 
 ## Ограничения текущей реализации
 
 - Для OpenAPI входная схема tools пока унифицированная (`params/query/headers/body`) и не генерируется из OpenAPI schema.
 - Для `postgres` намеренно нет “сырого SQL”; только `select` с ограничениями.
+- Для `mysql` намеренно нет “сырого SQL”; только `select` с ограничениями.
 
 ## Transport auth (HTTP)
 

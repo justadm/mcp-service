@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import YAML from "yaml";
 import pg from "pg";
+import mysql from "mysql2/promise";
 import type { AppConfig, SourceConfig } from "./config.js";
 
 const { Pool } = pg as unknown as typeof import("pg");
@@ -120,6 +121,92 @@ async function probeSource(src: SourceConfig) {
           id: src.id,
           type: src.type,
           schema,
+          allowTables: src.allowTables ?? null,
+          maxLimit: src.maxLimit ?? 1000,
+          ok: false,
+          error: String(e),
+        };
+      }
+    } finally {
+      await pool.end();
+    }
+  }
+
+  if (src.type === "mysql") {
+    if (!src.connectionString) {
+      return {
+        id: src.id,
+        type: src.type,
+        database: src.database ?? null,
+        allowTables: src.allowTables ?? null,
+        maxLimit: src.maxLimit ?? 1000,
+        ok: false,
+        error:
+          `[mysql:${src.id}] connectionString не задан (ожидается после resolveSecrets).`,
+      };
+    }
+
+    const pool = mysql.createPool(src.connectionString);
+    try {
+      try {
+        const db = (src.database ?? "").trim()
+          ? src.database!.trim()
+          : (() => "")();
+
+        let database = db;
+        if (!database) {
+          const [rows] = await pool.query("select database() as db");
+          const r0: any = Array.isArray(rows) ? rows[0] : null;
+          database = String(r0?.db ?? "").trim();
+        }
+
+        if (!database) {
+          return {
+            id: src.id,
+            type: src.type,
+            database: null,
+            allowTables: src.allowTables ?? null,
+            maxLimit: src.maxLimit ?? 1000,
+            ok: false,
+            error: `[mysql:${src.id}] database не задан и текущая database() пуста`,
+          };
+        }
+
+        const [rows] = await pool.query(
+          `
+            select table_name
+            from information_schema.tables
+            where table_schema = ?
+              and table_type = 'BASE TABLE'
+            order by table_name
+          `,
+          [database],
+        );
+
+        const tables = (rows as any[]).map((x) => String(x.table_name));
+        const filtered = src.allowTables
+          ? tables.filter(
+              (t) =>
+                src.allowTables!.includes(`${database}.${t}`) ||
+                src.allowTables!.includes(t),
+            )
+          : tables;
+
+        return {
+          id: src.id,
+          type: src.type,
+          database,
+          allowTables: src.allowTables ?? null,
+          tables: filtered,
+          tablesCount: filtered.length,
+          maxLimit: src.maxLimit ?? 1000,
+          ok: true,
+        };
+      } catch (e) {
+        return {
+          id: src.id,
+          type: src.type,
+          database: src.database ?? null,
           allowTables: src.allowTables ?? null,
           maxLimit: src.maxLimit ?? 1000,
           ok: false,

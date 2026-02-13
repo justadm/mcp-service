@@ -27,4 +27,21 @@ describe("AppConfig", () => {
     });
     expect(cfg.sources[0]?.type).toBe("postgres");
   });
+
+  it("парсит mysql источник", () => {
+    const cfg = AppConfig.parse({
+      server: { name: "x", version: "1" },
+      sources: [
+        {
+          id: "my1",
+          type: "mysql",
+          connectionString: "mysql://u:p@localhost:3306/db",
+          database: "db",
+          allowTables: ["users"],
+          maxLimit: 500,
+        },
+      ],
+    });
+    expect(cfg.sources[0]?.type).toBe("mysql");
+  });
 });

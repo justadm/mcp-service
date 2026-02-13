@@ -64,11 +64,23 @@ export const PostgresSourceConfig = SourceBase.extend({
   maxLimit: z.number().int().min(1).max(5000).optional().default(1000),
 });
 
+export const MysqlSourceConfig = SourceBase.extend({
+  type: z.literal("mysql"),
+  connectionString: z.string().min(1).optional(),
+  connectionStringFile: z.string().min(1).optional(),
+  connectionStringEnv: z.string().min(1).optional(),
+  // В MySQL schema == database.
+  database: z.string().min(1).optional(),
+  allowTables: z.array(z.string().min(1)).optional(),
+  maxLimit: z.number().int().min(1).max(5000).optional().default(1000),
+});
+
 export const SourceConfig = z.discriminatedUnion("type", [
   OpenApiSourceConfig,
   CsvSourceConfig,
   JsonSourceConfig,
   PostgresSourceConfig,
+  MysqlSourceConfig,
 ]);
 
 export const AppConfig = z.object({
@@ -117,3 +129,4 @@ export type OpenApiSourceConfig = z.infer<typeof OpenApiSourceConfig>;
 export type CsvSourceConfig = z.infer<typeof CsvSourceConfig>;
 export type JsonSourceConfig = z.infer<typeof JsonSourceConfig>;
 export type PostgresSourceConfig = z.infer<typeof PostgresSourceConfig>;
+export type MysqlSourceConfig = z.infer<typeof MysqlSourceConfig>;

@@ -4,6 +4,7 @@ import { createOpenApiConnector } from "./openapi.js";
 import { createCsvConnector } from "./csv.js";
 import { createJsonConnector } from "./json.js";
 import { createPostgresConnector } from "./postgres.js";
+import { createMysqlConnector } from "./mysql.js";
 
 export function createConnector(cfg: SourceConfig): Connector {
   switch (cfg.type) {
@@ -15,6 +16,8 @@ export function createConnector(cfg: SourceConfig): Connector {
       return createJsonConnector(cfg);
     case "postgres":
       return createPostgresConnector(cfg);
+    case "mysql":
+      return createMysqlConnector(cfg);
     default: {
       const _exhaustive: never = cfg;
       return _exhaustive;
