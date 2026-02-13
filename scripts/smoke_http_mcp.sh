@@ -14,6 +14,7 @@ set -euo pipefail
 # - MCP_PROTOCOL_VERSION (default: 2025-03-26)
 # - MCP_TOOL_NAME (e.g. mysql_mysql_main_list_tables)
 # - MCP_TOOL_ARGS_JSON (default: {})
+# - MCP_TOOL_ARGS_FILE (path to JSON, overrides MCP_TOOL_ARGS_JSON)
 
 require() {
   local k="$1"
@@ -34,6 +35,22 @@ MCP_PROTOCOL_VERSION="${MCP_PROTOCOL_VERSION:-2025-03-26}"
 # Use an intermediate variable to avoid accidental extra "}" in the result.
 DEFAULT_ARGS_JSON='{}'
 MCP_TOOL_ARGS_JSON="${MCP_TOOL_ARGS_JSON:-$DEFAULT_ARGS_JSON}"
+MCP_TOOL_ARGS_FILE="${MCP_TOOL_ARGS_FILE:-}"
+
+if [[ -n "$MCP_TOOL_ARGS_FILE" ]]; then
+  if [[ ! -f "$MCP_TOOL_ARGS_FILE" ]]; then
+    echo "MCP_TOOL_ARGS_FILE not found: $MCP_TOOL_ARGS_FILE" >&2
+    exit 2
+  fi
+  # Trim trailing newlines/spaces to avoid accidental JSON parse errors.
+  MCP_TOOL_ARGS_JSON="$(python3 - <<'PY'
+import sys
+p = sys.argv[1]
+raw = open(p, "r", encoding="utf-8").read()
+print(raw.strip())
+PY
+"$MCP_TOOL_ARGS_FILE")"
+fi
 
 tmp_headers="$(mktemp)"
 trap 'rm -f "$tmp_headers"' EXIT

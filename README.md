@@ -132,3 +132,19 @@ MCP_PROJECT_TOKEN='<MCP_MY_BEARER_TOKEN>' \
 MCP_TOOL_NAME='mysql_mysql_main_list_tables' \
 ./scripts/smoke_http_mcp.sh
 ```
+
+Если `MCP_TOOL_ARGS_JSON` неудобно экранировать, можно передать аргументы через файл:
+```bash
+cat > /tmp/mcp_args.json <<'JSON'
+{"pointer":"/meta/source"}
+JSON
+
+MCP_BASE_URL='https://mcp.justgpt.ru' \
+MCP_BASIC_USER='mcp' \
+MCP_BASIC_PASS='<ADMIN_PASSWORD>' \
+MCP_PROJECT_PATH='/p/j1/mcp' \
+MCP_PROJECT_TOKEN='<MCP_J1_BEARER_TOKEN>' \
+MCP_TOOL_NAME='json_json_main_get' \
+MCP_TOOL_ARGS_FILE='/tmp/mcp_args.json' \
+./scripts/smoke_http_mcp.sh
+```
