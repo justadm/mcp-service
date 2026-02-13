@@ -63,12 +63,12 @@ curl -fsS https://mcp.justgpt.ru/ready
 ### Минимальная ручная проверка MCP через curl
 
 Примечания:
-- ответ идет через SSE, поэтому `curl` будет “висеть”; добавляй `--max-time 2` для краткого прогона.
+- `Accept` должен включать и `application/json`, и `text/event-stream` (требование спецификации Streamable HTTP).
 - после `initialize` сервер вернет заголовок `mcp-session-id`, его надо передавать дальше.
 
 1) `initialize` (создает сессию):
 ```bash
-curl -i -N --max-time 2 \
+curl -i \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -X POST 'https://mcp.justgpt.ru/p/p1/mcp' \
@@ -77,7 +77,7 @@ curl -i -N --max-time 2 \
 
 2) `tools/list` (подставь `<SESSION_ID>` из `mcp-session-id`):
 ```bash
-curl -i -N --max-time 2 \
+curl -i \
   -H 'content-type: application/json' \
   -H 'accept: application/json, text/event-stream' \
   -H 'mcp-protocol-version: 2025-03-26' \
@@ -100,4 +100,5 @@ docker compose -f deploy/docker-compose.prod.yml up -d --build
 ## Примечания/ограничения MVP
 
 - В текущей реализации `mcp-service` проверяет путь на точное совпадение с `transport.path`, поэтому path нужно задавать “как снаружи”, например `/p/p1/mcp`.
+- В текущей реализации `StreamableHTTPServerTransport` требует `transport.stateful: true` для долгоживущего HTTP-сервиса (иначе транспорт "одноразовый" и не может обслуживать несколько запросов подряд).
 - Секреты (`connectionString`, токены) сейчас просто в YAML. В roadmap есть задача перейти на `*_FILE`/secret manager.
